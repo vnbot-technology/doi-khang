@@ -33,13 +33,15 @@ func _is_host() -> bool:
 	return multiplayer.is_server()
 
 func _slots_for_mode() -> Array[int]:
+	var r: Array[int] = []
 	if Global.is_network_game:
-		# Online: each player picks only their own slot
-		return [0] if _is_host() else [2]
+		if _is_host(): r.append(0) else: r.append(2)
+		return r
 	if _is_ai_mode():
-		return [0, 1] if _is_2v2() else [0]
+		if _is_2v2(): r.assign([0, 1]) else: r.assign([0])
 	else:
-		return [0, 1, 2, 3] if _is_2v2() else [0, 2]
+		if _is_2v2(): r.assign([0, 1, 2, 3]) else: r.assign([0, 2])
+	return r
 
 # ── UI construction ────────────────────────────────────────────────────────
 
@@ -235,10 +237,10 @@ func _start_game() -> void:
 		for s in ai_slots:
 			_selections[s] = Global.CHARACTER_NAMES[randi() % Global.CHARACTER_NAMES.size()]
 
-	Global.selected_characters = [
-		_selections[0] if not _selections[0].is_empty() else "Goku",
-		_selections[2] if not _selections[2].is_empty() else "Naruto",
-	]
+	var chars: Array[String] = []
+	chars.append(_selections[0] if not _selections[0].is_empty() else "Goku")
+	chars.append(_selections[2] if not _selections[2].is_empty() else "Naruto")
+	Global.selected_characters = chars
 
 	match Global.mode_submode:
 		"1v1":  Global.game_mode = "1v1"
