@@ -4,9 +4,40 @@ class_name CharacterSprite
 # Pixel-art renderer. Delegates frame data to per-character static classes
 # (PixelGoku, PixelNaruto, …) located in scripts/characters/sprites/.
 # Each art pixel is rendered as a PX×PX screen-pixel rectangle via draw_rect().
+# PNG characters (e.g. Sasuke) load a spritesheet and use draw_texture_rect_region().
 
 const PX := 3           # screen pixels per art pixel → 60×96 px sprite on screen
 const SPRITE_W := 20    # art pixels wide (all characters use the same grid)
+
+# PNG spritesheet paths keyed by char_name
+const PNG_SPRITE_PATHS: Dictionary = {
+	"Sasuke": "res://assets/sprites/sasuke_sheet.png",
+}
+
+# Per-character frame regions (Rect2) keyed by animation state name.
+# Auto-detected bounding boxes from white-background spritesheet.
+# Scale PNG_SCALE is applied at draw time.
+const PNG_FRAME_DATA: Dictionary = {
+	"Sasuke": {
+		"idle0":  [Rect2(255,  55, 47, 46)],
+		"idle1":  [Rect2(255,  55, 47, 46)],
+		"walk0":  [Rect2( 30, 294, 35, 47)],
+		"walk1":  [Rect2(152, 295, 34, 45)],
+		"jump":   [Rect2(616, 153, 47, 51)],
+		"attack": [Rect2(621,  31, 92, 70)],
+		"block":  [Rect2(378,  56, 43, 45)],
+		"hurt":   [Rect2(735, 174, 51, 47)],
+		"dead":   [Rect2(862, 199, 47, 23)],
+	}
+}
+
+const PNG_SCALE := 2.0   # render PNG frames at 2× (walk frames ~47px → ~94px tall)
+
+var _png_texture: Texture2D = null
+
+func _ready() -> void:
+	if char_name in PNG_SPRITE_PATHS:
+		_png_texture = load(PNG_SPRITE_PATHS[char_name]) as Texture2D
 
 var char_name: String = ""
 var base_color: Color = Color.WHITE  # kept for API compatibility
@@ -55,6 +86,10 @@ func _draw() -> void:
 	elif is_walking:   sk = "walk%d" % _walk_tick
 	else:              sk = "idle%d" % _anim_tick
 
+	if _png_texture != null:
+		_draw_png(sk)
+		return
+
 	var frame: PackedStringArray
 	var pal: Dictionary
 
@@ -81,6 +116,23 @@ func _draw() -> void:
 			return
 
 	_render_pixels(frame, pal)
+
+func _draw_png(sk: String) -> void:
+	var char_frames: Dictionary = PNG_FRAME_DATA.get(char_name, {})
+	var frames: Array = char_frames.get(sk, char_frames.get("idle0", []))
+	if frames.is_empty():
+		return
+	var region: Rect2 = frames[0]
+	var dw := region.size.x * PNG_SCALE
+	var dh := region.size.y * PNG_SCALE
+	var dst := Rect2(-dw * 0.5, -dh, dw, dh)
+	var mod := flash_color if _flash_timer > 0.0 else Color.WHITE
+	draw_texture_rect_region(_png_texture, dst, region, mod)
+	# Ground shadow
+	for i in int(dw):
+		var t := float(i) / dw
+		var a := 0.35 * sin(t * PI)
+		draw_rect(Rect2(-dw * 0.5 + i, 1, 1, 3), Color(0, 0, 0, a))
 
 # Renders a PackedStringArray frame using the given palette.
 # Row 0 = top, last row = bottom. Column 0 = left edge.

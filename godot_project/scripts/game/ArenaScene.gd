@@ -63,6 +63,7 @@ func _create_character(char_name: String, pid: int, prefix: String) -> Character
 		"Conan":    char_node = Conan.new()
 		"Doraemon": char_node = Doraemon.new()
 		"Sakura":   char_node = Sakura.new()
+		"Sasuke":   char_node = Sasuke.new()
 		_:          char_node = Goku.new()
 
 	# Custom-drawn anime sprite instead of plain ColorRect.

@@ -15,9 +15,10 @@ const CHARACTER_COLORS: Dictionary = {
 	"Conan": Color(0.2, 0.4, 0.9),
 	"Doraemon": Color(0.1, 0.7, 0.9),
 	"Sakura": Color(0.95, 0.5, 0.7),
+	"Sasuke": Color(0.3, 0.1, 0.6),
 }
 
-const CHARACTER_NAMES: Array[String] = ["Goku", "Naruto", "Luffy", "Conan", "Doraemon", "Sakura"]
+const CHARACTER_NAMES: Array[String] = ["Goku", "Naruto", "Luffy", "Conan", "Doraemon", "Sakura", "Sasuke"]
 
 func _ready() -> void:
 	_setup_input_map()
