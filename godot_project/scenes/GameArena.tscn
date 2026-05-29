@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/game/ArenaScene.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="2"]
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_1"]
 
 [node name="GameArena" type="Node2D"]
 script = ExtResource("1")
@@ -15,6 +17,7 @@ position = Vector2(0, 0)
 position = Vector2(640, 610)
 
 [node name="GroundCollision" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("WorldBoundaryShape2D_1")
 
 [node name="GroundVisual" type="ColorRect" parent="Ground"]
 color = Color(0.25, 0.18, 0.1, 1)

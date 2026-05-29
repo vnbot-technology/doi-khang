@@ -4,7 +4,7 @@
 
 config/name="DoiKhang Anime"
 config/version="0.1.0"
-config/features=PackedStringArray("4.3", "Forward Plus")
+config/features=PackedStringArray("4.3", "GL Compatibility")
 run/main_scene="res://scenes/MainMenu.tscn"
 
 [debug]
@@ -20,6 +20,8 @@ window/stretch/aspect="keep"
 
 [rendering]
 
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 
 [physics]

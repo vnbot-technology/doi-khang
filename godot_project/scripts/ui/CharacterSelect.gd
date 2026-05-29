@@ -19,19 +19,22 @@ func _ready() -> void:
 	mode_option.add_item("1v1 PvP")
 	mode_option.add_item("2v2 vs AI")
 	mode_option.add_item("2v2 PvP")
+	mode_option.select(0)
 
 func _populate_grids() -> void:
 	for char_name in Global.CHARACTER_NAMES:
 		var p1_btn := Button.new()
 		p1_btn.text = char_name
 		p1_btn.custom_minimum_size = Vector2(100, 70)
-		p1_btn.pressed.connect(func(): _select(1, char_name))
+		# Bind char_name explicitly so each button captures its own value
+		# (avoids closure-capture-by-reference bug in for loops).
+		p1_btn.pressed.connect(_select.bind(1, char_name))
 		p1_grid.add_child(p1_btn)
 
 		var p2_btn := Button.new()
 		p2_btn.text = char_name
 		p2_btn.custom_minimum_size = Vector2(100, 70)
-		p2_btn.pressed.connect(func(): _select(2, char_name))
+		p2_btn.pressed.connect(_select.bind(2, char_name))
 		p2_grid.add_child(p2_btn)
 
 func _select(player_id: int, char_name: String) -> void:
@@ -58,7 +61,10 @@ func _check_ready() -> void:
 
 func _start_game() -> void:
 	Global.selected_characters = [p1_selected, p2_selected]
-	match mode_option.get_selected_id():
+	# Use selected index (get_selected) rather than get_selected_id(): items
+	# added via add_item(text) auto-assign IDs equal to their index, but
+	# get_selected() is the unambiguous source of truth here.
+	match mode_option.get_selected():
 		0: Global.game_mode = "1v1"
 		1: Global.game_mode = "2v2_ai"
 		2: Global.game_mode = "2v2_pvp"

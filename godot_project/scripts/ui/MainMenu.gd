@@ -4,7 +4,13 @@ func _ready() -> void:
 	$VBox/PlayLocalBtn.pressed.connect(_on_local)
 	$VBox/PlayLANBtn.pressed.connect(_on_lan)
 	$VBox/PlayInternetBtn.pressed.connect(_on_internet)
-	$VBox/QuitBtn.pressed.connect(get_tree().quit)
+	# Use a Callable explicitly: get_tree().quit is a Callable in Godot 4, but
+	# wrapping in a lambda keeps the signal-connect semantics unambiguous and
+	# protects against get_tree() returning null at connect time.
+	$VBox/QuitBtn.pressed.connect(_on_quit)
+
+func _on_quit() -> void:
+	get_tree().quit()
 
 func _on_local() -> void:
 	Global.is_network_game = false
