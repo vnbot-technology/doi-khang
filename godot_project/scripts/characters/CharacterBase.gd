@@ -32,9 +32,9 @@ enum State {
 var state: State = State.IDLE
 var state_timer: float = 0.0
 
-@onready var body_rect: ColorRect = $BodyRect
-@onready var attack_hitbox: Hitbox = $AttackHitbox
-@onready var hurtbox: Hurtbox = $Hurtbox
+var body_rect: ColorRect = null
+var attack_hitbox: Hitbox = null
+var hurtbox: Hurtbox = null
 
 func setup(pid: int, prefix: String, local: bool) -> void:
 	player_id = pid

@@ -95,6 +95,11 @@ func _create_character(char_name: String, pid: int, prefix: String) -> Character
 	hurtbox.add_child(hurt_col)
 	char_node.add_child(hurtbox)
 
+	# Wire up node references (since char_node uses var not @onready)
+	char_node.body_rect = body_rect
+	char_node.attack_hitbox = attack_hitbox
+	char_node.hurtbox = hurtbox
+
 	char_node.setup(pid, prefix, true)
 	char_node.global_position = Vector2(300.0 if pid == 1 else 980.0, 500.0)
 	return char_node
