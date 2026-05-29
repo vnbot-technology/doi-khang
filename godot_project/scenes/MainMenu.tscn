@@ -11,7 +11,6 @@ anchor_bottom = 1.0
 [node name="Background" type="ColorRect" parent="."]
 color = Color(0.05, 0.05, 0.15, 1)
 size = Vector2(1280, 720)
-position = Vector2(0, 0)
 
 [node name="TitleLabel" type="Label" parent="."]
 position = Vector2(340, 100)
@@ -26,24 +25,3 @@ size = Vector2(520, 40)
 text = "Anime Fighting Game"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 22
-
-[node name="VBox" type="VBoxContainer" parent="."]
-position = Vector2(490, 270)
-size = Vector2(300, 260)
-theme_override_constants/separation = 12
-
-[node name="PlayLocalBtn" type="Button" parent="VBox"]
-text = "Play Local"
-custom_minimum_size = Vector2(300, 55)
-
-[node name="PlayLANBtn" type="Button" parent="VBox"]
-text = "Play LAN"
-custom_minimum_size = Vector2(300, 55)
-
-[node name="PlayInternetBtn" type="Button" parent="VBox"]
-text = "Play Internet"
-custom_minimum_size = Vector2(300, 55)
-
-[node name="QuitBtn" type="Button" parent="VBox"]
-text = "Quit"
-custom_minimum_size = Vector2(300, 55)

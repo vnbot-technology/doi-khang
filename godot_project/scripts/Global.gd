@@ -2,6 +2,8 @@ extends Node
 
 var selected_characters: Array[String] = ["Goku", "Naruto"]
 var game_mode: String = "1v1"
+var mode_category: String = "pvp"   # "pvp" | "ai"
+var mode_submode: String  = "1v1"   # "1v1" | "2v2" | "1vAI" | "2vAI"
 var is_network_game: bool = false
 var local_player_id: int = 1
 var last_winner: int = 1
