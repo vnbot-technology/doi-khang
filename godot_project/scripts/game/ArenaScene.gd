@@ -8,8 +8,11 @@ var game_manager: GameManager
 var player_chars: Array[CharacterBase] = []
 
 func _ready() -> void:
-	var shape := WorldBoundaryShape2D.new()
-	ground_col.shape = shape
+	# GroundCollision shape is now set in GameArena.tscn so we still have
+	# collision even if this script errors out before reaching this point.
+	# Fallback in case the scene was edited and the shape was removed.
+	if ground_col.shape == null:
+		ground_col.shape = WorldBoundaryShape2D.new()
 
 	game_manager = GameManager.new()
 	add_child(game_manager)
@@ -100,6 +103,9 @@ func _create_character(char_name: String, pid: int, prefix: String) -> Character
 	char_node.attack_hitbox = attack_hitbox
 	char_node.hurtbox = hurtbox
 
+	# Set char_name before setup() so body color resolves correctly.
+	# (subclass _ready() hasn't fired yet because node isn't in tree)
+	char_node.char_name = char_name
 	char_node.setup(pid, prefix, true)
 	char_node.global_position = Vector2(300.0 if pid == 1 else 980.0, 500.0)
 	return char_node

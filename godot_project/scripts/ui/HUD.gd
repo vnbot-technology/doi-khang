@@ -13,6 +13,8 @@ class_name HUD
 @onready var p1_win_dots: HBoxContainer = $P1Side/P1Info/WinDots
 @onready var p2_win_dots: HBoxContainer = $P2Side/P2Info/WinDots
 
+var _announce_token: int = 0
+
 func setup_players(p1: CharacterBase, p2: CharacterBase) -> void:
 	p1_name_label.text = p1.char_name
 	p2_name_label.text = p2.char_name
@@ -24,13 +26,23 @@ func setup_players(p1: CharacterBase, p2: CharacterBase) -> void:
 	p2_hp_bar.value = p2.health
 	p2_sp_bar.max_value = p2.max_special
 	p2_sp_bar.value = 0.0
-	p1.health_changed.connect(func(hp: float, _mx: float): p1_hp_bar.value = hp)
-	p1.special_changed.connect(func(sp: float): p1_sp_bar.value = sp)
-	p2.health_changed.connect(func(hp: float, _mx: float): p2_hp_bar.value = hp)
-	p2.special_changed.connect(func(sp: float): p2_sp_bar.value = sp)
+	# Use is_instance_valid in case HUD nodes are freed before signal disconnects
+	p1.health_changed.connect(func(hp: float, _mx: float):
+		if is_instance_valid(p1_hp_bar): p1_hp_bar.value = hp
+	)
+	p1.special_changed.connect(func(sp: float):
+		if is_instance_valid(p1_sp_bar): p1_sp_bar.value = sp
+	)
+	p2.health_changed.connect(func(hp: float, _mx: float):
+		if is_instance_valid(p2_hp_bar): p2_hp_bar.value = hp
+	)
+	p2.special_changed.connect(func(sp: float):
+		if is_instance_valid(p2_sp_bar): p2_sp_bar.value = sp
+	)
 
 func update_timer(seconds: float) -> void:
-	timer_label.text = "%02d" % int(ceil(seconds))
+	var display := max(0, int(ceil(seconds)))
+	timer_label.text = "%02d" % display
 	timer_label.modulate = Color.RED if seconds <= 10.0 else Color.WHITE
 
 func show_round(num: int) -> void:
@@ -38,10 +50,13 @@ func show_round(num: int) -> void:
 	announce("ROUND %d" % num)
 
 func announce(text: String, duration: float = 1.5) -> void:
+	_announce_token += 1
+	var my_token := _announce_token
 	announce_label.text = text
 	announce_label.visible = true
 	get_tree().create_timer(duration).timeout.connect(func():
-		if is_instance_valid(announce_label):
+		# Only hide if no newer announce() has been issued in the meantime
+		if is_instance_valid(announce_label) and my_token == _announce_token:
 			announce_label.visible = false
 	)
 

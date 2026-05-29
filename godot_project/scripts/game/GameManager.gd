@@ -35,9 +35,13 @@ func _start_round() -> void:
 		p.special = 0.0
 		p.is_dead = false
 		p.state = CharacterBase.State.IDLE
+		p.state_timer = 0.0
 		p.velocity = Vector2.ZERO
 		p.health_changed.emit(p.health, p.max_health)
 		p.special_changed.emit(p.special)
+		if p.attack_hitbox:
+			p.attack_hitbox.monitoring = false
+			p.attack_hitbox.reset()
 	_reset_positions()
 	round_started.emit(current_round)
 
@@ -75,19 +79,22 @@ func _end_round(winner_id: int) -> void:
 		round_wins[winner_id] = round_wins.get(winner_id, 0) + 1
 	round_ended.emit(winner_id)
 	var wins_needed := 2
-	if round_wins.get(winner_id, 0) >= wins_needed:
+	if winner_id > 0 and round_wins.get(winner_id, 0) >= wins_needed:
 		get_tree().create_timer(1.5).timeout.connect(func():
-			match_ended.emit(winner_id)
+			if is_instance_valid(self) and not is_queued_for_deletion():
+				match_ended.emit(winner_id)
 		)
 	elif current_round < MAX_ROUNDS:
 		get_tree().create_timer(2.0).timeout.connect(func():
-			current_round += 1
-			_start_round()
+			if is_instance_valid(self) and not is_queued_for_deletion():
+				current_round += 1
+				_start_round()
 		)
 	else:
 		var final_winner := _get_most_wins()
 		get_tree().create_timer(1.5).timeout.connect(func():
-			match_ended.emit(final_winner)
+			if is_instance_valid(self) and not is_queued_for_deletion():
+				match_ended.emit(final_winner)
 		)
 
 func _get_alive_player_id() -> int:
