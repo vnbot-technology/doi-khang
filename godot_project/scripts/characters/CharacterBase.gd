@@ -105,6 +105,8 @@ func _state_idle(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0, MOVE_SPEED * 8 * delta)
 	var input := _get_input()
 	_check_combat_input(input)
+	if state != State.IDLE:
+		return
 	if input & 1:   _set_state(State.WALK)
 	elif input & 2: _set_state(State.WALK)
 	elif (input & 4) and is_on_floor(): _jump()
@@ -114,6 +116,8 @@ func _state_idle(delta: float) -> void:
 func _state_walk(delta: float) -> void:
 	var input := _get_input()
 	_check_combat_input(input)
+	if state != State.WALK:
+		return
 	if input & 1:
 		velocity.x = -MOVE_SPEED
 	elif input & 2:
