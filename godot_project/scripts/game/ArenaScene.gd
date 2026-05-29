@@ -80,9 +80,9 @@ func _create_character(char_name: String, pid: int, prefix: String) -> Character
 	attack_hitbox.monitoring = false
 	var atk_col := CollisionShape2D.new()
 	var atk_shape := RectangleShape2D.new()
-	atk_shape.size = Vector2(80, 50)
+	atk_shape.size = Vector2(120, 60)
 	atk_col.shape = atk_shape
-	atk_col.position = Vector2(60, -40)
+	atk_col.position = Vector2(80, -40)
 	attack_hitbox.add_child(atk_col)
 	char_node.add_child(attack_hitbox)
 

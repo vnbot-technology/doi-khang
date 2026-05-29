@@ -41,28 +41,14 @@ func _setup_input_map() -> void:
 func go_to_scene(path: String) -> void:
 	get_tree().change_scene_to_file(path)
 
-# Per-frame cache so multiple callers in the same frame see the same
-# "just_pressed" result. Without this, mixing _process and _physics_process
-# (or calling for both local input and network replay) can drop jump/attack
-# edges because is_action_just_pressed only fires once per polling domain.
-var _input_cache: Dictionary = {}
-var _input_cache_frame: int = -1
-
 func get_input_bitmask(prefix: String) -> int:
-	var frame := Engine.get_process_frames()
-	if frame != _input_cache_frame:
-		_input_cache.clear()
-		_input_cache_frame = frame
-	if _input_cache.has(prefix):
-		return _input_cache[prefix]
 	var bits := 0
-	if Input.is_action_pressed(prefix + "left"):         bits |= 1
-	if Input.is_action_pressed(prefix + "right"):        bits |= 2
-	if Input.is_action_just_pressed(prefix + "jump"):    bits |= 4
-	if Input.is_action_pressed(prefix + "crouch"):       bits |= 8
-	if Input.is_action_just_pressed(prefix + "attack"):  bits |= 16
-	if Input.is_action_just_pressed(prefix + "special"): bits |= 32
-	if Input.is_action_just_pressed(prefix + "ultimate"):bits |= 64
-	if Input.is_action_pressed(prefix + "block"):        bits |= 128
-	_input_cache[prefix] = bits
+	if Input.is_action_pressed(prefix + "left"):          bits |= 1
+	if Input.is_action_pressed(prefix + "right"):         bits |= 2
+	if Input.is_action_just_pressed(prefix + "jump"):     bits |= 4
+	if Input.is_action_pressed(prefix + "crouch"):        bits |= 8
+	if Input.is_action_just_pressed(prefix + "attack"):   bits |= 16
+	if Input.is_action_just_pressed(prefix + "special"):  bits |= 32
+	if Input.is_action_just_pressed(prefix + "ultimate"): bits |= 64
+	if Input.is_action_pressed(prefix + "block"):         bits |= 128
 	return bits

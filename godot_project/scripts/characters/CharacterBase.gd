@@ -180,7 +180,8 @@ func _do_attack() -> void:
 	if attack_hitbox:
 		attack_hitbox.reset()
 		attack_hitbox.monitoring = true
-	velocity.x += (1.0 if facing_right else -1.0) * 100.0
+	velocity.x += (1.0 if facing_right else -1.0) * 180.0
+	_flash_color(body_rect.color.lightened(0.5) if body_rect else Color.WHITE, 0.15)
 	get_tree().create_timer(0.15).timeout.connect(func():
 		if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 			attack_hitbox.monitoring = false
@@ -209,6 +210,7 @@ func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> void:
 		if state not in [State.ATTACK, State.SPECIAL, State.ULTIMATE]:
 			_set_state(State.HURT)
 			state_timer = 0.35
+	_flash_color(Color.RED, 0.2)
 	health_changed.emit(health, max_health)
 	if health <= 0.0 and not is_dead:
 		_die()
@@ -226,3 +228,13 @@ func _die() -> void:
 	state = State.DEAD
 	velocity = Vector2.ZERO
 	died.emit()
+
+func _flash_color(flash: Color, duration: float) -> void:
+	if not body_rect:
+		return
+	var original := body_rect.color
+	body_rect.color = flash
+	get_tree().create_timer(duration).timeout.connect(func():
+		if is_instance_valid(self) and body_rect:
+			body_rect.color = original
+	)
