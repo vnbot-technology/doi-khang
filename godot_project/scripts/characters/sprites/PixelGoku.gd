@@ -24,11 +24,11 @@ static func get_frame(state: String) -> PackedStringArray:
 	return IDLE0
 
 static var IDLE0 := PackedStringArray([
-	"..K..KK.KK.KK..K....",
-	".KK.KKK.KK.KKK.KK...",
+	"...K.KKK..KKK.K.....",
+	"..KK.KKK.KKK.KK.....",
+	".KK.KKKKKKKKK.KK....",
 	".KKKKKKKKKKKKKKKK...",
 	"..KKKKKKKKKKKKKKK...",
-	"...KKKKKKKKKKKKK....",
 	"...KKSSSSSSSSKKK....",
 	"...KSSSSSSSSSSKK....",
 	"...KSSSSSSSSSSKK....",
@@ -59,11 +59,11 @@ static var IDLE0 := PackedStringArray([
 ])
 
 static var IDLE1 := PackedStringArray([
-	"..K..KK.KK.KK..K....",
-	".KK.KKK.KK.KKK.KK...",
+	"...K.KKK..KKK.K.....",
+	"..KK.KKK.KKK.KK.....",
+	".KK.KKKKKKKKK.KK....",
 	".KKKKKKKKKKKKKKKK...",
 	"..KKKKKKKKKKKKKKK...",
-	"...KKKKKKKKKKKKK....",
 	"...KKSSSSSSSSKKK....",
 	"...KSSSSSSSSSSKK....",
 	"...KSSSSSSSSSSKK....",
@@ -94,11 +94,11 @@ static var IDLE1 := PackedStringArray([
 ])
 
 static var ATTACK := PackedStringArray([
-	"..K..KK.KK.KK..K....",
-	".KK.KKK.KK.KKK.KK...",
+	"...K.KKK..KKK.K.....",
+	"..KK.KKK.KKK.KK.....",
+	".KK.KKKKKKKKK.KK....",
 	".KKKKKKKKKKKKKKKK...",
 	"..KKKKKKKKKKKKKKK...",
-	"...KKKKKKKKKKKKK....",
 	"...KKSSSSSSSSKKK....",
 	"...KSSSSSSSSSSKK....",
 	"...KSSSSSSSSSSKK....",
@@ -130,11 +130,11 @@ static var ATTACK := PackedStringArray([
 
 static var BLOCK := PackedStringArray([
 	"....................",
-	"..K..KK.KK.KK..K....",
-	".KK.KKK.KK.KKK.KK...",
+	"...K.KKK..KKK.K.....",
+	"..KK.KKK.KKK.KK.....",
+	".KK.KKKKKKKKK.KK....",
 	".KKKKKKKKKKKKKKKK...",
 	"..KKKKKKKKKKKKKKK...",
-	"...KKKKKKKKKKKKK....",
 	"...KKSSSSSSSSKKK....",
 	"...KSSSSSSSSSSKK....",
 	"...KSSSSSSSSSSKK....",
