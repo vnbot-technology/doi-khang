@@ -6,8 +6,10 @@ extends Node2D
 
 var game_manager: GameManager
 var player_chars: Array[CharacterBase] = []
+var _pause_menu: PauseMenu = null
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	# GroundCollision shape is now set in GameArena.tscn so we still have
 	# collision even if this script errors out before reaching this point.
 	# Fallback in case the scene was edited and the shape was removed.
@@ -20,6 +22,12 @@ func _ready() -> void:
 	game_manager.round_ended.connect(_on_round_ended)
 	game_manager.match_ended.connect(_on_match_ended)
 	game_manager.timer_updated.connect(hud.update_timer)
+
+	_pause_menu = PauseMenu.new()
+	add_child(_pause_menu)
+	_pause_menu.resume_requested.connect(_on_pause_resume)
+	_pause_menu.menu_requested.connect(_on_pause_menu)
+	_pause_menu.quit_requested.connect(get_tree().quit)
 
 	_spawn_players()
 
@@ -130,3 +138,17 @@ func _on_match_ended(winner_id: int) -> void:
 	hud.announce("PLAYER %d WINS THE MATCH!" % winner_id, 3.0)
 	await get_tree().create_timer(3.5).timeout
 	Global.go_to_scene("res://scenes/ResultScreen.tscn")
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		if _pause_menu.visible:
+			_on_pause_resume()
+		else:
+			_pause_menu.open()
+
+func _on_pause_resume() -> void:
+	_pause_menu.close()
+
+func _on_pause_menu() -> void:
+	_pause_menu.close()
+	Global.go_to_scene("res://scenes/MainMenu.tscn")
