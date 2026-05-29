@@ -1,11 +1,15 @@
 ; Engine configuration file.
 
-[gd_project id="doikhang_anime"]
+[application]
 
 config/name="DoiKhang Anime"
 config/version="0.1.0"
 config/features=PackedStringArray("4.3", "Forward Plus")
 run/main_scene="res://scenes/MainMenu.tscn"
+
+[debug]
+
+gdscript/warnings/inference_on_variant=1
 
 [display]
 
@@ -13,10 +17,6 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep"
-
-[debug]
-
-gdscript/warnings/inference_on_variant=1
 
 [rendering]
 
