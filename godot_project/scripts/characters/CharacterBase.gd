@@ -243,10 +243,12 @@ func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> void:
 	if state == State.BLOCK:
 		amount *= 0.15
 		health = max(0.0, health - amount)
-		velocity += knockback * 0.3
+		velocity.x += knockback.x * 0.3
+		velocity.y = max(velocity.y + knockback.y * 0.3, -120.0)
 	else:
 		health = max(0.0, health - amount)
-		velocity += knockback
+		velocity.x += knockback.x
+		velocity.y = max(knockback.y, -160.0)
 		if state not in [State.ATTACK, State.SPECIAL, State.ULTIMATE]:
 			_set_state(State.HURT)
 			state_timer = 0.35
