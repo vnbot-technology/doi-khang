@@ -1,0 +1,76 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/LobbyRoom.gd" id="1"]
+
+[node name="LobbyRoom" type="Control"]
+script = ExtResource("1")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Background" type="ColorRect" parent="."]
+color = Color(0.05, 0.05, 0.15, 1)
+size = Vector2(1280, 720)
+
+[node name="Title" type="Label" parent="."]
+position = Vector2(490, 30)
+size = Vector2(300, 55)
+text = "LOBBY"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 44
+
+[node name="RoomCodeLabel" type="Label" parent="."]
+position = Vector2(290, 110)
+size = Vector2(700, 50)
+text = "Not hosting yet"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 26
+
+[node name="StatusLabel" type="Label" parent="."]
+position = Vector2(290, 170)
+size = Vector2(700, 40)
+text = "Choose Host or Join"
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="."]
+position = Vector2(440, 230)
+
+[node name="HostBtn" type="Button" parent="Buttons"]
+text = "Host Room"
+custom_minimum_size = Vector2(180, 52)
+
+[node name="JoinBtn" type="Button" parent="Buttons"]
+text = "Join Room"
+custom_minimum_size = Vector2(180, 52)
+
+[node name="JoinPanel" type="VBoxContainer" parent="."]
+position = Vector2(440, 300)
+visible = false
+theme_override_constants/separation = 8
+
+[node name="CodeInput" type="LineEdit" parent="JoinPanel"]
+placeholder_text = "IP address or room code"
+custom_minimum_size = Vector2(320, 44)
+
+[node name="ConfirmBtn" type="Button" parent="JoinPanel"]
+text = "Connect"
+custom_minimum_size = Vector2(160, 44)
+
+[node name="PlayerList" type="VBoxContainer" parent="."]
+position = Vector2(80, 290)
+size = Vector2(320, 280)
+
+[node name="PlayersTitle" type="Label" parent="PlayerList"]
+text = "Players in room:"
+theme_override_font_sizes/font_size = 16
+
+[node name="StartBtn" type="Button" parent="."]
+position = Vector2(540, 620)
+size = Vector2(200, 52)
+text = "START GAME"
+disabled = true
+
+[node name="BackBtn" type="Button" parent="."]
+position = Vector2(20, 660)
+text = "Back"
+custom_minimum_size = Vector2(100, 40)
