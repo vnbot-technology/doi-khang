@@ -17,8 +17,8 @@ func _physics_process(delta: float) -> void:
 		gear2_timer -= delta
 		if gear2_timer <= 0.0:
 			gear2_active = false
-			if body_rect:
-				body_rect.color = Global.CHARACTER_COLORS["Luffy"]
+			if body_rect and "base_color" in body_rect:
+				body_rect.set("base_color", Global.CHARACTER_COLORS["Luffy"])
 	super(delta)
 
 func _do_special() -> void:
@@ -43,7 +43,7 @@ func _do_ultimate() -> void:
 	special_changed.emit(special)
 	gear2_active = true
 	gear2_timer = GEAR2_DURATION
-	if body_rect:
-		body_rect.color = Color(1.0, 0.4, 0.4)
+	if body_rect and "base_color" in body_rect:
+		body_rect.set("base_color", Color(1.0, 0.4, 0.4))
 	_set_state(State.ULTIMATE)
 	state_timer = 0.8

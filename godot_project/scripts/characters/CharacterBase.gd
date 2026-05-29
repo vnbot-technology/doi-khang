@@ -36,7 +36,7 @@ enum State {
 var state: State = State.IDLE
 var state_timer: float = 0.0
 
-var body_rect: ColorRect = null
+var body_rect: Node2D = null  # CharacterSprite (custom-drawn) — kept name for backward compat
 var attack_hitbox: Hitbox = null
 var hurtbox: Hurtbox = null
 
@@ -47,7 +47,8 @@ func setup(pid: int, prefix: String, local: bool) -> void:
 	health = max_health
 	special = 0.0
 	if body_rect:
-		body_rect.color = Global.CHARACTER_COLORS.get(char_name, Color.WHITE)
+		body_rect.set("base_color", Global.CHARACTER_COLORS.get(char_name, Color.WHITE))
+		body_rect.set("char_name", char_name)
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
@@ -181,7 +182,17 @@ func _do_attack() -> void:
 		attack_hitbox.reset()
 		attack_hitbox.monitoring = true
 	velocity.x += (1.0 if facing_right else -1.0) * 180.0
-	_flash_color(body_rect.color.lightened(0.5) if body_rect else Color.WHITE, 0.15)
+	# Trigger attack pose on sprite
+	if body_rect and "is_attacking" in body_rect:
+		body_rect.set("is_attacking", true)
+		get_tree().create_timer(0.2).timeout.connect(func():
+			if is_instance_valid(self) and is_instance_valid(body_rect):
+				body_rect.set("is_attacking", false)
+		)
+	var base: Color = Color.WHITE
+	if body_rect and "base_color" in body_rect:
+		base = body_rect.get("base_color")
+	_flash_color(base.lightened(0.5), 0.15)
 	get_tree().create_timer(0.15).timeout.connect(func():
 		if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 			attack_hitbox.monitoring = false
@@ -196,6 +207,8 @@ func _do_ultimate() -> void:
 func _set_state(new_state: State) -> void:
 	state = new_state
 	state_timer = 0.0
+	if body_rect and "is_blocking" in body_rect:
+		body_rect.set("is_blocking", new_state == State.BLOCK)
 
 func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> void:
 	if is_dead:
@@ -227,14 +240,12 @@ func _die() -> void:
 	is_dead = true
 	state = State.DEAD
 	velocity = Vector2.ZERO
+	if body_rect and "is_dead" in body_rect:
+		body_rect.set("is_dead", true)
 	died.emit()
 
 func _flash_color(flash: Color, duration: float) -> void:
 	if not body_rect:
 		return
-	var original := body_rect.color
-	body_rect.color = flash
-	get_tree().create_timer(duration).timeout.connect(func():
-		if is_instance_valid(self) and body_rect:
-			body_rect.color = original
-	)
+	if body_rect.has_method("flash"):
+		body_rect.flash(flash, duration)

@@ -57,11 +57,13 @@ func _create_character(char_name: String, pid: int, prefix: String) -> Character
 		"Sakura":   char_node = Sakura.new()
 		_:          char_node = Goku.new()
 
-	var body_rect := ColorRect.new()
+	# Custom-drawn anime sprite instead of plain ColorRect.
+	# Sprite draws relative to its own origin; positioning matches old ColorRect
+	# bottom-center at (0,0) of the character node.
+	var body_rect := CharacterSprite.new()
 	body_rect.name = "BodyRect"
-	body_rect.size = Vector2(50, 90)
-	body_rect.position = Vector2(-25, -90)
-	body_rect.color = Global.CHARACTER_COLORS.get(char_name, Color.WHITE)
+	body_rect.char_name = char_name
+	body_rect.base_color = Global.CHARACTER_COLORS.get(char_name, Color.WHITE)
 	char_node.add_child(body_rect)
 
 	var col := CollisionShape2D.new()

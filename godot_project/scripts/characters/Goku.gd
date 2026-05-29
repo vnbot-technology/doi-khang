@@ -17,8 +17,8 @@ func _physics_process(delta: float) -> void:
 		ssj_timer -= delta
 		if ssj_timer <= 0.0:
 			ssj_active = false
-			if body_rect:
-				body_rect.color = Global.CHARACTER_COLORS["Goku"]
+			if body_rect and "base_color" in body_rect:
+				body_rect.set("base_color", Global.CHARACTER_COLORS["Goku"])
 	super(delta)
 
 func _state_crouch(delta: float) -> void:
@@ -60,8 +60,8 @@ func _do_ultimate() -> void:
 	special_changed.emit(special)
 	ssj_active = true
 	ssj_timer = SSJ_DURATION
-	if body_rect:
-		body_rect.color = Color(1.0, 1.0, 0.0)
+	if body_rect and "base_color" in body_rect:
+		body_rect.set("base_color", Color(1.0, 1.0, 0.0))
 	_set_state(State.ULTIMATE)
 	state_timer = 1.0
 
