@@ -1,0 +1,31 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ResultScreen.gd" id="1"]
+
+[node name="ResultScreen" type="Control"]
+script = ExtResource("1")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Background" type="ColorRect" parent="."]
+color = Color(0.02, 0.02, 0.1, 1)
+size = Vector2(1280, 720)
+
+[node name="WinnerLabel" type="Label" parent="."]
+position = Vector2(290, 250)
+size = Vector2(700, 100)
+text = "PLAYER 1 WINS!"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 72
+
+[node name="Buttons" type="HBoxContainer" parent="."]
+position = Vector2(390, 420)
+
+[node name="RematchBtn" type="Button" parent="Buttons"]
+text = "REMATCH"
+custom_minimum_size = Vector2(220, 55)
+
+[node name="MenuBtn" type="Button" parent="Buttons"]
+text = "MAIN MENU"
+custom_minimum_size = Vector2(220, 55)

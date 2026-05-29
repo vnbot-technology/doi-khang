@@ -1,17 +1,17 @@
 extends CanvasLayer
 class_name HUD
 
-@onready var p1_hp_bar: ProgressBar = $P1Side/HPBar
-@onready var p1_sp_bar: ProgressBar = $P1Side/SPBar
-@onready var p1_name_label: Label = $P1Side/CharName
-@onready var p2_hp_bar: ProgressBar = $P2Side/HPBar
-@onready var p2_sp_bar: ProgressBar = $P2Side/SPBar
-@onready var p2_name_label: Label = $P2Side/CharName
+@onready var p1_hp_bar: ProgressBar = $P1Side/P1Info/HPBar
+@onready var p1_sp_bar: ProgressBar = $P1Side/P1Info/SPBar
+@onready var p1_name_label: Label = $P1Side/P1Info/CharName
+@onready var p2_hp_bar: ProgressBar = $P2Side/P2Info/HPBar
+@onready var p2_sp_bar: ProgressBar = $P2Side/P2Info/SPBar
+@onready var p2_name_label: Label = $P2Side/P2Info/CharName
 @onready var timer_label: Label = $CenterPanel/TimerLabel
 @onready var round_label: Label = $CenterPanel/RoundLabel
 @onready var announce_label: Label = $CenterPanel/AnnounceLabel
-@onready var p1_win_dots: HBoxContainer = $P1Side/WinDots
-@onready var p2_win_dots: HBoxContainer = $P2Side/WinDots
+@onready var p1_win_dots: HBoxContainer = $P1Side/P1Info/WinDots
+@onready var p2_win_dots: HBoxContainer = $P2Side/P2Info/WinDots
 
 func setup_players(p1: CharacterBase, p2: CharacterBase) -> void:
 	p1_name_label.text = p1.char_name
