@@ -1,0 +1,5 @@
+relay_server/node_modules/
+*.tmp
+.DS_Store
+build/
+godot_project/.godot/
