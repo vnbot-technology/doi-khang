@@ -24,6 +24,10 @@ static func get_frame(state: String) -> PackedStringArray:
 		"attack": return ATTACK
 		"block":  return BLOCK
 		"dead":   return DEAD
+		"walk0":  return WALK0
+		"walk1":  return WALK1
+		"jump":   return JUMP
+		"hurt":   return HURT
 	return IDLE0
 
 static var IDLE0 := PackedStringArray([
@@ -165,6 +169,49 @@ static var BLOCK := PackedStringArray([
 	"..AAAAAA..AAAAAA....",
 	"..AAAAAA..AAAAAA....",
 ])
+
+static func _make_walk0() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	# Doraemon: A=blue legs, waddle left foot forward
+	f[27] = "....AAAA.....AAAA..."
+	f[28] = "...AAAAA.....AAAAA.."
+	f[29] = "...AAAAA.....AAAAA.."
+	f[30] = "..AAAAAA.....AAAAAA."
+	f[31] = "..AAAAAA.....AAAAAA."
+	return f
+
+static func _make_walk1() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	# Waddle right foot forward
+	f[27] = "..AAAA.....AAAA....."
+	f[28] = ".AAAAA.....AAAAA...."
+	f[29] = ".AAAAA.....AAAAA...."
+	f[30] = "AAAAAA.....AAAAAA..."
+	f[31] = "AAAAAA.....AAAAAA..."
+	return f
+
+static func _make_jump() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	# Both legs tucked up
+	f[27] = ".....AAAA..AAAA....."
+	f[28] = "....AAAAA..AAAAA...."
+	f[29] = "....AAAAA..AAAAA...."
+	f[30] = "...AAAAAA..AAAAAA..."
+	f[31] = "...AAAAAA..AAAAAA..."
+	return f
+
+static func _make_hurt() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	# Round body tilts back
+	for i in range(18, 27):
+		if f[i].length() >= 20:
+			f[i] = ".." + f[i].substr(0, 18)
+	return f
+
+static var WALK0 := _make_walk0()
+static var WALK1 := _make_walk1()
+static var JUMP  := _make_jump()
+static var HURT  := _make_hurt()
 
 static var DEAD := PackedStringArray([
 	"....................",

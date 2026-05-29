@@ -13,10 +13,15 @@ var base_color: Color = Color.WHITE  # kept for API compatibility
 var is_attacking: bool = false
 var is_blocking: bool = false
 var is_dead: bool = false
+var is_walking: bool = false
+var is_jumping: bool = false
+var is_hurt: bool = false
 var flash_color: Color = Color.TRANSPARENT
 var _flash_timer: float = 0.0
 var _anim_tick: int = 0
 var _anim_timer: float = 0.0
+var _walk_tick: int = 0
+var _walk_timer: float = 0.0
 
 func _process(delta: float) -> void:
 	if _flash_timer > 0.0:
@@ -27,6 +32,13 @@ func _process(delta: float) -> void:
 	if _anim_timer >= 0.45:
 		_anim_timer = 0.0
 		_anim_tick = (_anim_tick + 1) % 2
+	if is_walking:
+		_walk_timer += delta
+		if _walk_timer >= 0.18:
+			_walk_timer = 0.0
+			_walk_tick = (_walk_tick + 1) % 2
+	else:
+		_walk_timer = 0.0
 	queue_redraw()
 
 func flash(color: Color, duration: float) -> void:
@@ -34,10 +46,14 @@ func flash(color: Color, duration: float) -> void:
 	_flash_timer = duration
 
 func _draw() -> void:
-	var sk := "idle%d" % _anim_tick
+	var sk: String
 	if is_dead:        sk = "dead"
 	elif is_attacking: sk = "attack"
 	elif is_blocking:  sk = "block"
+	elif is_hurt:      sk = "hurt"
+	elif is_jumping:   sk = "jump"
+	elif is_walking:   sk = "walk%d" % _walk_tick
+	else:              sk = "idle%d" % _anim_tick
 
 	var frame: PackedStringArray
 	var pal: Dictionary

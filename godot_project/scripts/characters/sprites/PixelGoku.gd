@@ -21,6 +21,10 @@ static func get_frame(state: String) -> PackedStringArray:
 		"attack": return ATTACK
 		"block":  return BLOCK
 		"dead":   return DEAD
+		"walk0":  return WALK0
+		"walk1":  return WALK1
+		"jump":   return JUMP
+		"hurt":   return HURT
 	return IDLE0
 
 static var IDLE0 := PackedStringArray([
@@ -162,6 +166,46 @@ static var BLOCK := PackedStringArray([
 	"..KKKKK......KKKKK..",
 	"..KKKKK......KKKKK..",
 ])
+
+static func _make_walk0() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	# Left leg forward, right leg back
+	f[28] = "....KKKK.....KKKK..."
+	f[29] = "....KKKK.....KKKK..."
+	f[30] = "...KKKKK.....KKKKK.."
+	f[31] = "...KKKKK.....KKKKK.."
+	return f
+
+static func _make_walk1() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	# Right leg forward, left leg back
+	f[28] = "..KKKK.....KKKK....."
+	f[29] = "..KKKK.....KKKK....."
+	f[30] = ".KKKKK.....KKKKK...."
+	f[31] = ".KKKKK.....KKKKK...."
+	return f
+
+static func _make_jump() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	# Both legs pulled up
+	f[28] = ".....KKKK..KKKK....."
+	f[29] = ".....KKKK..KKKK....."
+	f[30] = "....KKKKK..KKKKK...."
+	f[31] = "....KKKKK..KKKKK...."
+	return f
+
+static func _make_hurt() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	# Body leans back (shift body rows right by 2)
+	for i in range(15, 28):
+		if f[i].length() >= 20:
+			f[i] = ".." + f[i].substr(0, 18)
+	return f
+
+static var WALK0 := _make_walk0()
+static var WALK1 := _make_walk1()
+static var JUMP  := _make_jump()
+static var HURT  := _make_hurt()
 
 static var DEAD := PackedStringArray([
 	"....................",

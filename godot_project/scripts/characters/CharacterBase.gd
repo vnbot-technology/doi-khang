@@ -60,6 +60,7 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_clamp_to_arena()
 	_face_opponent()
+	_sync_sprite()
 
 func _apply_gravity(delta: float) -> void:
 	if not is_on_floor():
@@ -273,9 +274,13 @@ func revive() -> void:
 	state_timer = 0.0
 	velocity = Vector2.ZERO
 	if body_rect is CharacterSprite:
-		(body_rect as CharacterSprite).is_dead = false
-		(body_rect as CharacterSprite).is_attacking = false
-		(body_rect as CharacterSprite).is_blocking = false
+		var sp := body_rect as CharacterSprite
+		sp.is_dead = false
+		sp.is_attacking = false
+		sp.is_blocking = false
+		sp.is_walking = false
+		sp.is_jumping = false
+		sp.is_hurt = false
 	if attack_hitbox:
 		attack_hitbox.monitoring = false
 		attack_hitbox.reset()
@@ -289,6 +294,13 @@ func _die() -> void:
 	if body_rect and "is_dead" in body_rect:
 		body_rect.set("is_dead", true)
 	died.emit()
+
+func _sync_sprite() -> void:
+	if body_rect is CharacterSprite:
+		var sp := body_rect as CharacterSprite
+		sp.is_walking = (state == State.WALK)
+		sp.is_jumping = (state == State.JUMP)
+		sp.is_hurt    = (state == State.HURT)
 
 func _flash_color(flash: Color, duration: float) -> void:
 	if not body_rect:

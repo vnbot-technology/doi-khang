@@ -26,6 +26,10 @@ static func get_frame(state: String) -> PackedStringArray:
 		"attack": return ATTACK
 		"block":  return BLOCK
 		"dead":   return DEAD
+		"walk0":  return WALK0
+		"walk1":  return WALK1
+		"jump":   return JUMP
+		"hurt":   return HURT
 	return IDLE0
 
 # Each row MUST be exactly 20 characters.
@@ -178,6 +182,43 @@ static var BLOCK := PackedStringArray([
 	"..SssSSS....SssSSS..",
 	"..ssssss....ssssss..",
 ])
+
+static func _make_walk0() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	# Luffy: bare feet (S/s), rows 28-31
+	f[28] = "....BBBBB.....BBBBB."
+	f[29] = "....SSSSS.....SSSSS."
+	f[30] = "...SssSSS.....SssSSS"
+	f[31] = "...ssssss.....ssssss"
+	return f
+
+static func _make_walk1() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	f[28] = "..BBBBB.....BBBBB..."
+	f[29] = "..SSSSS.....SSSSS..."
+	f[30] = ".SssSSS.....SssSSS.."
+	f[31] = ".ssssss.....ssssss.."
+	return f
+
+static func _make_jump() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	f[28] = ".....BBBBB.BBBBB...."
+	f[29] = ".....SSSSS.SSSSS...."
+	f[30] = "....SssSSS.SssSSS..."
+	f[31] = "....ssssss.ssssss..."
+	return f
+
+static func _make_hurt() -> PackedStringArray:
+	var f := IDLE0.duplicate()
+	for i in range(15, 28):
+		if f[i].length() >= 20:
+			f[i] = ".." + f[i].substr(0, 18)
+	return f
+
+static var WALK0 := _make_walk0()
+static var WALK1 := _make_walk1()
+static var JUMP  := _make_jump()
+static var HURT  := _make_hurt()
 
 # Dead: lying flat on the ground, straw hat tipped to the side.
 static var DEAD := PackedStringArray([
