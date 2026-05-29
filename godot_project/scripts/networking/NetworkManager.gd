@@ -15,6 +15,7 @@ var connected_peers: Array[int] = []
 var relay_client: RelayClient = null
 
 func _ready() -> void:
+	set_process(false)  # only enable while scanning LAN
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
@@ -56,34 +57,61 @@ func get_player_count() -> int:
 var udp_server: UDPServer = null
 var discovery_socket: PacketPeerUDP = null
 var discovered_rooms: Array[Dictionary] = []
+var _lan_broadcast_active: bool = false
 
 signal lan_room_discovered(room_info: Dictionary)
 
 func start_lan_host_broadcast() -> void:
+	# Guard against duplicate recursive timer chains
+	if _lan_broadcast_active:
+		return
+	_lan_broadcast_active = true
+	_lan_broadcast_tick()
+
+func _lan_broadcast_tick() -> void:
+	# Stop chain if no longer hosting
+	if not (is_host and multiplayer.is_server()):
+		_lan_broadcast_active = false
+		return
 	var broadcast := PacketPeerUDP.new()
-	broadcast.set_broadcast_enabled(true)
-	broadcast.set_dest_address("255.255.255.255", 7778)
-	var data := JSON.stringify({"type": "host_announce", "port": DEFAULT_PORT})
-	broadcast.put_packet(data.to_utf8_buffer())
+	# Bind to ephemeral port first so broadcasting works on all platforms
+	var bind_err := broadcast.bind(0)
+	if bind_err == OK:
+		broadcast.set_broadcast_enabled(true)
+		broadcast.set_dest_address("255.255.255.255", 7778)
+		var data := JSON.stringify({"type": "host_announce", "port": DEFAULT_PORT})
+		var put_err := broadcast.put_packet(data.to_utf8_buffer())
+		if put_err != OK:
+			push_warning("LAN broadcast failed: " + error_string(put_err))
+	else:
+		push_warning("LAN broadcast bind failed: " + error_string(bind_err))
 	broadcast.close()
-	# Re-broadcast every 2s
-	get_tree().create_timer(2.0).timeout.connect(func():
-		if is_host and multiplayer.is_server():
-			start_lan_host_broadcast()
-	)
+	# Re-broadcast every 2s using a single chained timer
+	get_tree().create_timer(2.0).timeout.connect(_lan_broadcast_tick)
 
 func scan_lan_rooms() -> void:
 	discovered_rooms.clear()
+	if discovery_socket:
+		discovery_socket.close()
 	discovery_socket = PacketPeerUDP.new()
-	discovery_socket.bind(7778)
+	var err := discovery_socket.bind(7778)
+	if err != OK:
+		push_error("LAN scan bind failed: " + error_string(err))
+		discovery_socket = null
+		return
+	set_process(true)
 
 func stop_lan_scan() -> void:
 	if discovery_socket:
 		discovery_socket.close()
 		discovery_socket = null
+	set_process(false)
 
 func _process(_delta: float) -> void:
-	if discovery_socket and discovery_socket.get_available_packet_count() > 0:
+	if discovery_socket == null:
+		set_process(false)
+		return
+	if discovery_socket.get_available_packet_count() > 0:
 		var packet := discovery_socket.get_packet()
 		var json_str := packet.get_string_from_utf8()
 		var data: Variant = JSON.parse_string(json_str)
@@ -94,7 +122,7 @@ func _process(_delta: float) -> void:
 				discovered_rooms.append(info)
 				lan_room_discovered.emit(info)
 
-@rpc("any_peer", "call_local", "reliable")
+@rpc("authority", "call_local", "reliable")
 func sync_game_start(char1: String, char2: String, mode: String) -> void:
 	Global.selected_characters = [char1, char2]
 	Global.game_mode = mode
