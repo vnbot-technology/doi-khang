@@ -40,9 +40,11 @@ func _reset_positions() -> void:
 		players[0].global_position = Vector2(300.0, 500.0)
 		players[1].global_position = Vector2(980.0, 500.0)
 		players[0].facing_right = true
-		players[0].scale.x = 1.0
+		if players[0].body_rect:
+			players[0].body_rect.scale.x = 1.0
 		players[1].facing_right = false
-		players[1].scale.x = -1.0
+		if players[1].body_rect:
+			players[1].body_rect.scale.x = -1.0
 
 func _process(delta: float) -> void:
 	if not round_active:

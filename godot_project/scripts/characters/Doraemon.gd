@@ -41,6 +41,7 @@ func _do_ultimate() -> void:
 	if attack_hitbox:
 		var original_damage := attack_hitbox.damage
 		attack_hitbox.reset()
+		attack_hitbox.scale.x = 1.0 if facing_right else -1.0
 		attack_hitbox.damage = 25.0
 		attack_hitbox.monitoring = true
 		get_tree().create_timer(COPTER_DURATION).timeout.connect(func():

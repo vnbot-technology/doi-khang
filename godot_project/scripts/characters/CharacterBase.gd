@@ -75,10 +75,12 @@ func _face_opponent() -> void:
 		var diff := opponent.global_position.x - global_position.x
 		if diff > 5.0:
 			facing_right = true
-			scale.x = 1.0
+			if body_rect:
+				body_rect.scale.x = 1.0
 		elif diff < -5.0:
 			facing_right = false
-			scale.x = -1.0
+			if body_rect:
+				body_rect.scale.x = -1.0
 
 func _process_state(delta: float) -> void:
 	match state:
@@ -204,6 +206,7 @@ func _do_attack() -> void:
 	state_timer = 0.3
 	if attack_hitbox:
 		attack_hitbox.reset()
+		attack_hitbox.scale.x = 1.0 if facing_right else -1.0
 		attack_hitbox.monitoring = true
 	velocity.x += (1.0 if facing_right else -1.0) * 180.0
 	# Trigger attack pose on sprite
@@ -263,15 +266,14 @@ func heal(amount: float) -> void:
 
 func revive() -> void:
 	health = max_health
-	special = 0.0
 	is_dead = false
 	state = State.IDLE
 	state_timer = 0.0
 	velocity = Vector2.ZERO
-	if body_rect:
-		body_rect.set("is_dead", false)
-		body_rect.set("is_attacking", false)
-		body_rect.set("is_blocking", false)
+	if body_rect is CharacterSprite:
+		(body_rect as CharacterSprite).is_dead = false
+		(body_rect as CharacterSprite).is_attacking = false
+		(body_rect as CharacterSprite).is_blocking = false
 	if attack_hitbox:
 		attack_hitbox.monitoring = false
 		attack_hitbox.reset()
