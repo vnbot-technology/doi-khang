@@ -4,6 +4,7 @@ signal player_connected(peer_id: int)
 signal player_disconnected(peer_id: int)
 signal connection_failed
 signal server_disconnected
+signal char_pick_received(peer_id: int, char_name: String)
 
 const DEFAULT_PORT := 7777
 const MAX_PLAYERS := 4
@@ -13,6 +14,7 @@ var connection_type: String = "lan"
 var room_code: String = ""
 var connected_peers: Array[int] = []
 var relay_client: RelayClient = null
+var char_picks: Dictionary = {}   # peer_id → char_name
 
 func _ready() -> void:
 	set_process(false)  # only enable while scanning LAN
@@ -121,6 +123,20 @@ func _process(_delta: float) -> void:
 			if info not in discovered_rooms:
 				discovered_rooms.append(info)
 				lan_room_discovered.emit(info)
+
+@rpc("authority", "call_local", "reliable")
+func sync_go_to_char_select() -> void:
+	char_picks.clear()
+	Global.go_to_scene("res://scenes/CharacterSelect.tscn")
+
+# Called by each client to submit their character choice to the host.
+@rpc("any_peer", "call_local", "reliable")
+func submit_char_pick(char_name: String) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if sender == 0:
+		sender = multiplayer.get_unique_id()
+	char_picks[sender] = char_name
+	char_pick_received.emit(sender, char_name)
 
 @rpc("authority", "call_local", "reliable")
 func sync_game_start(char1: String, char2: String, mode: String) -> void:

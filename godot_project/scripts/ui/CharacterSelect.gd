@@ -18,6 +18,8 @@ var _status_labels: Array[Label] = []   # one per active slot
 func _ready() -> void:
 	_active_slots = _slots_for_mode()
 	_build_ui()
+	if Global.is_network_game:
+		NetworkManager.char_pick_received.connect(_on_network_char_pick)
 
 # ── Mode helpers ───────────────────────────────────────────────────────────
 
@@ -27,7 +29,13 @@ func _is_ai_mode() -> bool:
 func _is_2v2() -> bool:
 	return Global.mode_submode in ["2v2", "2vAI"]
 
+func _is_host() -> bool:
+	return multiplayer.is_server()
+
 func _slots_for_mode() -> Array[int]:
+	if Global.is_network_game:
+		# Online: each player picks only their own slot
+		return [0] if _is_host() else [2]
 	if _is_ai_mode():
 		return [0, 1] if _is_2v2() else [0]
 	else:
@@ -50,7 +58,7 @@ func _build_ui() -> void:
 	else:
 		_build_1v1_panels()
 
-	# Start button
+	# Start button — host only in online mode; hidden for client
 	_start_btn = Button.new()
 	_start_btn.text = "START FIGHT!"
 	_start_btn.custom_minimum_size = Vector2(220, 52)
@@ -60,21 +68,42 @@ func _build_ui() -> void:
 	_start_btn.pressed.connect(_start_game)
 	add_child(_start_btn)
 
-	# Back button
+	if Global.is_network_game and not _is_host():
+		_start_btn.visible = false
+		var wait_lbl := Label.new()
+		wait_lbl.text = "Waiting for host to start..."
+		wait_lbl.position = Vector2(430, 668)
+		wait_lbl.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0))
+		add_child(wait_lbl)
+
+	# Back button — return to lobby for online, main menu for offline
 	var back := Button.new()
 	back.text = "← Back"
 	back.custom_minimum_size = Vector2(120, 40)
 	back.position = Vector2(30, 670)
-	back.pressed.connect(func(): Global.go_to_scene("res://scenes/MainMenu.tscn"))
+	if Global.is_network_game:
+		back.pressed.connect(func():
+			NetworkManager.disconnect_from_game()
+			Global.go_to_scene("res://scenes/MainMenu.tscn")
+		)
+	else:
+		back.pressed.connect(func(): Global.go_to_scene("res://scenes/MainMenu.tscn"))
 	add_child(back)
 
-	# AI info label
+	# Info labels
 	if _is_ai_mode():
 		var ai_lbl := Label.new()
 		ai_lbl.text = "AI will pick automatically"
 		ai_lbl.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0))
 		ai_lbl.position = Vector2(700, 90)
 		add_child(ai_lbl)
+	elif Global.is_network_game:
+		var role := "Host (Player 1)" if _is_host() else "Client (Player 2)"
+		var net_lbl := Label.new()
+		net_lbl.text = "You are: " + role
+		net_lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
+		net_lbl.position = Vector2(480, 90)
+		add_child(net_lbl)
 
 func _header_text() -> String:
 	match Global.mode_submode:
@@ -159,9 +188,34 @@ func _confirm(slot: int) -> void:
 	if slot < _status_labels.size() and is_instance_valid(_status_labels[slot]):
 		_status_labels[slot].text = _selections[slot] + "  ✓"
 		_status_labels[slot].add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+	if Global.is_network_game:
+		# Submit this player's pick to all peers via NetworkManager RPC
+		NetworkManager.submit_char_pick.rpc(_selections[slot])
 	_refresh_start()
 
+func _on_network_char_pick(_peer_id: int, _char_name: String) -> void:
+	# Recheck start button whenever any pick comes in (host only)
+	_refresh_start()
+
+func _network_all_picked() -> bool:
+	var required := _required_online_players()
+	if NetworkManager.char_picks.size() < required:
+		return false
+	var host_id := 1
+	var all_ids := [host_id] + NetworkManager.connected_peers
+	for id in all_ids:
+		if not NetworkManager.char_picks.has(id):
+			return false
+	return true
+
+func _required_online_players() -> int:
+	return 4 if Global.mode_submode == "2v2" else 2
+
 func _refresh_start() -> void:
+	if Global.is_network_game:
+		# Host can start only when ALL players have submitted a pick
+		_start_btn.disabled = not (is_instance_valid(_start_btn) and _is_host() and _network_all_picked())
+		return
 	var ready := true
 	for slot in _active_slots:
 		if _selections[slot].is_empty() or not _confirmed[slot]:
@@ -172,8 +226,11 @@ func _refresh_start() -> void:
 # ── Start game ─────────────────────────────────────────────────────────────
 
 func _start_game() -> void:
+	if Global.is_network_game:
+		_start_online()
+		return
+
 	if _is_ai_mode():
-		# AI picks random chars for its slots
 		var ai_slots := [2, 3] if _is_2v2() else [2]
 		for s in ai_slots:
 			_selections[s] = Global.CHARACTER_NAMES[randi() % Global.CHARACTER_NAMES.size()]
@@ -189,7 +246,17 @@ func _start_game() -> void:
 		"1vAI": Global.game_mode = "1vAI"
 		"2vAI": Global.game_mode = "2vAI"
 
-	if Global.is_network_game:
-		Global.go_to_scene("res://scenes/LobbyRoom.tscn")
-	else:
-		Global.go_to_scene("res://scenes/GameArena.tscn")
+	Global.go_to_scene("res://scenes/GameArena.tscn")
+
+func _start_online() -> void:
+	# Host collects both picks and launches
+	var host_id := 1  # server always has peer id 1
+	var all_ids := [host_id] + NetworkManager.connected_peers
+	var picks: Array[String] = []
+	for id in all_ids:
+		picks.append(NetworkManager.char_picks.get(id, "Goku"))
+
+	var char1 := picks[0] if picks.size() > 0 else "Goku"
+	var char2 := picks[1] if picks.size() > 1 else "Naruto"
+	var mode  := "1v1" if Global.mode_submode == "1v1" else "2v2_pvp"
+	NetworkManager.sync_game_start.rpc(char1, char2, mode)

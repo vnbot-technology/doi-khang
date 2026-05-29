@@ -19,7 +19,7 @@ func _build_main() -> void:
 
 	_add_btn(_main_panel, "⚔  PvP",    func(): _show_sub("pvp"))
 	_add_btn(_main_panel, "🤖  vs AI",  func(): _show_sub("ai"))
-	_add_btn(_main_panel, "🌐  Online", _on_online)
+	_add_btn(_main_panel, "🌐  Online", func(): _show_sub("online"))
 	_add_btn(_main_panel, "Quit",       get_tree().quit)
 
 # ── Sub-mode panel (slides in after category choice) ───────────────────────
@@ -52,10 +52,14 @@ func _show_sub(category: String) -> void:
 		_sub_label.text = "⚔  PvP — Choose mode"
 		_add_btn(_sub_panel, "1 vs 1",      func(): _go_select("1v1"))
 		_add_btn(_sub_panel, "2 vs 2",      func(): _go_select("2v2"))
-	else:  # ai
+	elif category == "ai":
 		_sub_label.text = "🤖  vs AI — Choose mode"
 		_add_btn(_sub_panel, "1 vs AI",     func(): _go_select("1vAI"))
 		_add_btn(_sub_panel, "2 vs AI",     func(): _go_select("2vAI"))
+	else:  # online
+		_sub_label.text = "🌐  Online — Choose mode"
+		_add_btn(_sub_panel, "1 vs 1",      func(): _go_lobby("1v1"))
+		_add_btn(_sub_panel, "2 vs 2",      func(): _go_lobby("2v2"))
 
 	_add_btn(_sub_panel, "← Back", _show_main)
 	_sub_panel.visible = true
@@ -71,11 +75,13 @@ func _go_select(submode: String) -> void:
 	Global.is_network_game = false
 	Global.go_to_scene("res://scenes/CharacterSelect.tscn")
 
-func _on_online() -> void:
-	Global.mode_category = "pvp"
-	Global.mode_submode = "1v1"
+func _go_lobby(submode: String) -> void:
+	Global.mode_submode = submode
 	Global.is_network_game = true
-	Global.go_to_scene("res://scenes/CharacterSelect.tscn")
+	Global.go_to_scene("res://scenes/LobbyRoom.tscn")
+
+func _on_online() -> void:
+	_show_sub("online")
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 
