@@ -247,6 +247,7 @@ func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> void:
 		if state not in [State.ATTACK, State.SPECIAL, State.ULTIMATE]:
 			_set_state(State.HURT)
 			state_timer = 0.35
+	add_special(amount * 0.5)
 	_flash_color(Color.RED, 0.2)
 	health_changed.emit(health, max_health)
 	if health <= 0.0 and not is_dead:
