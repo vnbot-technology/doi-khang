@@ -39,10 +39,12 @@ func _do_ultimate() -> void:
 	_set_state(State.ULTIMATE)
 	state_timer = COPTER_DURATION
 	if attack_hitbox:
+		var original_damage := attack_hitbox.damage
+		attack_hitbox.reset()
 		attack_hitbox.damage = 25.0
 		attack_hitbox.monitoring = true
 		get_tree().create_timer(COPTER_DURATION).timeout.connect(func():
-			if is_instance_valid(self) and attack_hitbox:
+			if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 				attack_hitbox.monitoring = false
-				attack_hitbox.damage = 15.0
+				attack_hitbox.damage = original_damage
 		)

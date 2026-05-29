@@ -29,12 +29,14 @@ func _do_special() -> void:
 	state_timer = 0.5
 	velocity.x = (1.0 if facing_right else -1.0) * 400.0
 	if attack_hitbox:
+		var original_damage := attack_hitbox.damage
+		attack_hitbox.reset()
 		attack_hitbox.damage = RASENGAN_DAMAGE
 		attack_hitbox.monitoring = true
 		get_tree().create_timer(0.25).timeout.connect(func():
-			if is_instance_valid(self) and attack_hitbox:
+			if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 				attack_hitbox.monitoring = false
-				attack_hitbox.damage = 15.0
+				attack_hitbox.damage = original_damage
 		)
 
 func _do_ultimate() -> void:

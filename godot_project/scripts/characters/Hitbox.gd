@@ -17,8 +17,10 @@ func reset() -> void:
 func _on_area_entered(area: Area2D) -> void:
 	if not (area is Hurtbox):
 		return
+	if owner_character == null or not is_instance_valid(owner_character):
+		return
 	var target: CharacterBase = area.owner_character
-	if target == null or target == owner_character:
+	if target == null or not is_instance_valid(target) or target == owner_character:
 		return
 	if target in already_hit:
 		return

@@ -37,14 +37,21 @@ func _do_special() -> void:
 func _fire_kamehameha() -> void:
 	if not get_parent():
 		return
+	var vel := Vector2(1.0 if facing_right else -1.0, 0.0) * 600.0
 	var proj := _create_beam_projectile(
 		Color(0.3, 0.5, 1.0),
-		Vector2(1.0 if facing_right else -1.0, 0.0) * 600.0,
+		vel,
 		KAMEHAMEHA_DAMAGE,
 		Vector2(80, 20)
 	)
 	get_parent().add_child(proj)
 	proj.global_position = global_position + Vector2((1.0 if facing_right else -1.0) * 60.0, -20.0)
+	# Set velocity AFTER add_child so script is properly initialized
+	proj.set("vel", vel)
+	# Ensure the projectile's hitbox is monitoring (Hitbox._ready sets it to false)
+	var hb := proj.get_node_or_null("Hitbox") as Hitbox
+	if hb:
+		hb.monitoring = true
 
 func _do_ultimate() -> void:
 	if special < 80.0:
@@ -66,12 +73,11 @@ func _create_beam_projectile(color: Color, vel: Vector2, dmg: float, size: Vecto
 	rect.position = -size / 2.0
 	proj.add_child(rect)
 
-	var col_body := StaticBody2D.new()
 	var hitbox := Hitbox.new()
+	hitbox.name = "Hitbox"
 	hitbox.damage = dmg
 	hitbox.owner_character = self
 	hitbox.knockback_force = 200.0
-	hitbox.monitoring = true
 	var atk_col := CollisionShape2D.new()
 	var atk_shape := RectangleShape2D.new()
 	atk_shape.size = size
@@ -84,11 +90,14 @@ func _create_beam_projectile(color: Color, vel: Vector2, dmg: float, size: Vecto
 var vel: Vector2 = Vector2.ZERO
 func _process(delta: float) -> void:
 	position += vel * delta
-	if position.x < -200 or position.x > 1600:
+	if global_position.x < -200 or global_position.x > 1600:
 		queue_free()
 """
+	var err := script.reload()
+	if err != OK:
+		push_error("Goku projectile script failed to compile: %s" % err)
+		proj.queue_free()
+		return Node2D.new()
 	proj.set_script(script)
-	proj.set_meta("vel", vel)
-	# Defer vel set so script is ready
-	proj.call_deferred("set", "vel", vel)
+	proj.set("vel", vel)
 	return proj

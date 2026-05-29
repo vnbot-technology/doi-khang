@@ -31,9 +31,15 @@ func _do_ultimate() -> void:
 	special_changed.emit(special)
 	_set_state(State.ULTIMATE)
 	state_timer = 1.2
+	var captured_opponent := opponent
 	for i in range(SOCCER_HITS):
 		get_tree().create_timer(float(i) * 0.2).timeout.connect(func():
-			if is_instance_valid(self) and opponent and is_instance_valid(opponent) and not opponent.is_dead:
-				var dir := sign(opponent.global_position.x - global_position.x)
-				opponent.take_damage(SOCCER_DAMAGE_PER_HIT, Vector2(dir * 200.0, -60.0))
+			if not is_instance_valid(self):
+				return
+			if captured_opponent == null or not is_instance_valid(captured_opponent):
+				return
+			if captured_opponent.is_dead:
+				return
+			var dir := sign(captured_opponent.global_position.x - global_position.x)
+			captured_opponent.take_damage(SOCCER_DAMAGE_PER_HIT, Vector2(dir * 200.0, -60.0))
 		)

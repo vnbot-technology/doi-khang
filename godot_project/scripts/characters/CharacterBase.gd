@@ -24,6 +24,10 @@ var opponent: CharacterBase = null
 var facing_right: bool = true
 var is_dead: bool = false
 
+# Optional input override (used by AIController). When >= 0, replaces local input.
+# AI sets this each tick via set_input_override(); CharacterBase reads it in _get_input().
+var input_override: int = -1
+
 enum State {
 	IDLE, WALK, JUMP, CROUCH,
 	ATTACK, SPECIAL, ULTIMATE,
@@ -65,7 +69,7 @@ func _clamp_to_arena() -> void:
 	position.x = clamp(position.x, 80.0, 1200.0)
 
 func _face_opponent() -> void:
-	if opponent and state not in [State.ATTACK, State.SPECIAL, State.ULTIMATE, State.HURT]:
+	if opponent and is_instance_valid(opponent) and state not in [State.ATTACK, State.SPECIAL, State.ULTIMATE, State.HURT]:
 		var diff := opponent.global_position.x - global_position.x
 		if diff > 5.0:
 			facing_right = true
@@ -87,9 +91,14 @@ func _process_state(delta: float) -> void:
 		State.BLOCK:    _state_block(delta)
 
 func _get_input() -> int:
+	if input_override >= 0:
+		return input_override
 	if is_local:
 		return Global.get_input_bitmask(input_prefix)
 	return 0
+
+func set_input_override(bits: int) -> void:
+	input_override = bits
 
 func _state_idle(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0, MOVE_SPEED * 8 * delta)
@@ -169,10 +178,11 @@ func _do_attack() -> void:
 	_set_state(State.ATTACK)
 	state_timer = 0.3
 	if attack_hitbox:
+		attack_hitbox.reset()
 		attack_hitbox.monitoring = true
 	velocity.x += (1.0 if facing_right else -1.0) * 100.0
 	get_tree().create_timer(0.15).timeout.connect(func():
-		if is_instance_valid(self) and attack_hitbox:
+		if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 			attack_hitbox.monitoring = false
 	)
 
@@ -191,6 +201,7 @@ func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> void:
 		return
 	if state == State.BLOCK:
 		amount *= 0.15
+		health = max(0.0, health - amount)
 		velocity += knockback * 0.3
 	else:
 		health = max(0.0, health - amount)
