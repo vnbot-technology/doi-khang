@@ -54,9 +54,9 @@ func _fire_kamehameha() -> void:
 		hb.monitoring = true
 
 func _do_ultimate() -> void:
-	if special < 80.0:
+	if special < 50.0:
 		return
-	special -= 80.0
+	special -= 50.0
 	special_changed.emit(special)
 	ssj_active = true
 	ssj_timer = SSJ_DURATION

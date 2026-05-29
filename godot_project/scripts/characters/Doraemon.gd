@@ -30,9 +30,9 @@ func _do_special() -> void:
 		global_position.x = clamp(target_x, 80.0, 1200.0)
 
 func _do_ultimate() -> void:
-	if special < 80.0:
+	if special < 50.0:
 		return
-	special -= 80.0
+	special -= 50.0
 	special_changed.emit(special)
 	copter_active = true
 	copter_timer = COPTER_DURATION

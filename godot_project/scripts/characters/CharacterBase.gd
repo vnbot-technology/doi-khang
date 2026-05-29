@@ -55,7 +55,7 @@ func _physics_process(delta: float) -> void:
 		return
 	_apply_gravity(delta)
 	state_timer -= delta
-	add_special(4.0 * delta)
+	add_special(8.0 * delta)
 	_process_state(delta)
 	move_and_slide()
 	_clamp_to_arena()
@@ -184,7 +184,7 @@ func _check_combat_input(input: int) -> void:
 					if is_instance_valid(self) and is_instance_valid(body_rect):
 						body_rect.set("is_attacking", false)
 				)
-	elif (input & 64) and special >= 80.0:
+	elif (input & 64) and special >= 50.0:
 		_do_ultimate()
 		if state == State.ULTIMATE:
 			_flash_color(Color(1.0, 0.85, 0.0), 0.6)

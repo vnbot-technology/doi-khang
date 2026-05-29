@@ -37,9 +37,9 @@ func _do_special() -> void:
 			add_special(5.0)
 
 func _do_ultimate() -> void:
-	if special < 80.0:
+	if special < 50.0:
 		return
-	special -= 80.0
+	special -= 50.0
 	special_changed.emit(special)
 	gear2_active = true
 	gear2_timer = GEAR2_DURATION

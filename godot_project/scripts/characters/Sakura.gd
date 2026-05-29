@@ -33,9 +33,9 @@ func _do_special() -> void:
 	heal(HEAL_AMOUNT)
 
 func _do_ultimate() -> void:
-	if special < 80.0:
+	if special < 50.0:
 		return
-	special -= 80.0
+	special -= 50.0
 	special_changed.emit(special)
 	_set_state(State.ULTIMATE)
 	state_timer = 0.6
