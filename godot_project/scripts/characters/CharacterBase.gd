@@ -55,6 +55,7 @@ func _physics_process(delta: float) -> void:
 		return
 	_apply_gravity(delta)
 	state_timer -= delta
+	add_special(4.0 * delta)
 	_process_state(delta)
 	move_and_slide()
 	_clamp_to_arena()
@@ -171,9 +172,28 @@ func _state_block(_delta: float) -> void:
 func _check_combat_input(input: int) -> void:
 	if state in [State.ATTACK, State.SPECIAL, State.ULTIMATE, State.HURT, State.DEAD]:
 		return
-	if input & 16:                       _do_attack()
-	elif (input & 32) and special >= 30.0: _do_special()
-	elif (input & 64) and special >= 80.0: _do_ultimate()
+	if input & 16:
+		_do_attack()
+	elif (input & 32) and special >= 30.0:
+		_do_special()
+		if state == State.SPECIAL:
+			_flash_color(Color(0.3, 0.8, 1.0), 0.4)
+			if body_rect and "is_attacking" in body_rect:
+				body_rect.set("is_attacking", true)
+				get_tree().create_timer(0.5).timeout.connect(func():
+					if is_instance_valid(self) and is_instance_valid(body_rect):
+						body_rect.set("is_attacking", false)
+				)
+	elif (input & 64) and special >= 80.0:
+		_do_ultimate()
+		if state == State.ULTIMATE:
+			_flash_color(Color(1.0, 0.85, 0.0), 0.6)
+			if body_rect and "is_attacking" in body_rect:
+				body_rect.set("is_attacking", true)
+				get_tree().create_timer(0.9).timeout.connect(func():
+					if is_instance_valid(self) and is_instance_valid(body_rect):
+						body_rect.set("is_attacking", false)
+				)
 
 func _jump() -> void:
 	velocity.y = JUMP_VELOCITY
@@ -239,6 +259,23 @@ func add_special(amount: float) -> void:
 func heal(amount: float) -> void:
 	health = min(max_health, health + amount)
 	health_changed.emit(health, max_health)
+
+func revive() -> void:
+	health = max_health
+	special = 0.0
+	is_dead = false
+	state = State.IDLE
+	state_timer = 0.0
+	velocity = Vector2.ZERO
+	if body_rect:
+		body_rect.set("is_dead", false)
+		body_rect.set("is_attacking", false)
+		body_rect.set("is_blocking", false)
+	if attack_hitbox:
+		attack_hitbox.monitoring = false
+		attack_hitbox.reset()
+	health_changed.emit(health, max_health)
+	special_changed.emit(special)
 
 func _die() -> void:
 	is_dead = true

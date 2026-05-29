@@ -31,17 +31,7 @@ func _start_round() -> void:
 	round_active = true
 	set_process(true)
 	for p in players:
-		p.health = p.max_health
-		p.special = 0.0
-		p.is_dead = false
-		p.state = CharacterBase.State.IDLE
-		p.state_timer = 0.0
-		p.velocity = Vector2.ZERO
-		p.health_changed.emit(p.health, p.max_health)
-		p.special_changed.emit(p.special)
-		if p.attack_hitbox:
-			p.attack_hitbox.monitoring = false
-			p.attack_hitbox.reset()
+		p.revive()
 	_reset_positions()
 	round_started.emit(current_round)
 

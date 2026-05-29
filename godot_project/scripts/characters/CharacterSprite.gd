@@ -49,6 +49,12 @@ func _draw() -> void:
 		"Sakura":   _draw_sakura(c, dark, light)
 		_:          _draw_generic(c, dark, light)
 
+	# Block shield overlay — drawn on top regardless of character
+	if is_blocking:
+		draw_circle(Vector2(0, -50), 44, Color(0.2, 0.5, 1.0, 0.18))
+		draw_arc(Vector2(0, -50), 44, -PI * 0.55, PI * 0.55, 28, Color(0.4, 0.7, 1.0, 0.85), 4)
+		draw_arc(Vector2(0, -50), 38, -PI * 0.5, PI * 0.5, 24, Color(0.7, 0.9, 1.0, 0.5), 2)
+
 func _draw_ellipse(center: Vector2, radii: Vector2, color: Color) -> void:
 	var points := PackedVector2Array()
 	for i in range(32):
