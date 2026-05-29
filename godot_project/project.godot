@@ -1,0 +1,24 @@
+; Engine configuration file.
+
+[gd_project id="doikhang_anime"]
+
+config/name="DoiKhang Anime"
+config/version="0.1.0"
+config/features=PackedStringArray("4.3", "Forward Plus")
+run/main_scene="res://scenes/MainMenu.tscn"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[physics]
+
+2d/default_gravity=980
+
+[autoload]
+
+Global="*res://scripts/Global.gd"
+NetworkManager="*res://scripts/networking/NetworkManager.gd"
