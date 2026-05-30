@@ -62,7 +62,7 @@ func _spawn_clones() -> void:
 func _make_clone(index: int) -> Node2D:
 	var clone := Node2D.new()
 	var rect := ColorRect.new()
-	var c := Global.CHARACTER_COLORS.get("Naruto", Color.YELLOW)
+	var c: Color = Global.CHARACTER_COLORS.get("Naruto", Color.YELLOW)
 	rect.color = Color(c.r, c.g, c.b, 0.55)
 	rect.size = Vector2(40, 80)
 	rect.position = Vector2(-20, -80)

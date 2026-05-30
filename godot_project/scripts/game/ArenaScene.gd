@@ -321,7 +321,7 @@ func _update_camera(delta: float) -> void:
 	_camera.position = cam_pos
 
 func _on_ultimate_activated(user: CharacterBase) -> void:
-	var color := Global.CHARACTER_COLORS.get(user.char_name, Color.WHITE)
+	var color: Color = Global.CHARACTER_COLORS.get(user.char_name, Color.WHITE)
 	_flash_overlay.color = color
 	_flash_overlay.color.a = 0.0
 	_flash_timer = 0.25
@@ -331,7 +331,7 @@ func _on_ultimate_activated(user: CharacterBase) -> void:
 func _on_hit_landed(target: CharacterBase, damage: float, attacker: CharacterBase) -> void:
 	var hit_pos := target.global_position + Vector2(0, -40)
 	var intensity := clamp(damage / 20.0, 0.5, 2.0)
-	var color := Global.CHARACTER_COLORS.get(attacker.char_name, Color.WHITE)
+	var color: Color = Global.CHARACTER_COLORS.get(attacker.char_name, Color.WHITE)
 	HitEffect.spawn(players_node, hit_pos, color, intensity)
 	if damage >= 30.0:
 		_shake_intensity = clamp(damage * 0.3, 4.0, 14.0)

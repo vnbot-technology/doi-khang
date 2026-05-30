@@ -2,7 +2,7 @@ extends Control
 
 var _selections  = ["", "", "", ""]
 var _confirmed   = [false, false, false, false]
-var _active_slots = []
+var _active_slots: Array[int] = []
 var _start_btn   = null
 var _status_labels = []
 # Each entry: [slot: int, cname: String, btn: Button]
@@ -14,9 +14,9 @@ func _ready() -> void:
 	if Global.is_network_game:
 		NetworkManager.char_pick_received.connect(_on_network_char_pick)
 
-func _compute_slots() -> Array:
+func _compute_slots() -> Array[int]:
 	if Global.is_network_game:
-		var r = []
+		var r: Array[int] = []
 		r.append(0 if multiplayer.is_server() else 2)
 		return r
 	if Global.mode_category == "ai":

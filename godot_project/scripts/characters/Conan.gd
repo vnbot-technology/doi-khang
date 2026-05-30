@@ -44,7 +44,7 @@ func _do_ultimate() -> void:
 				return
 			if captured_opponent.is_dead:
 				return
-			var dir := sign(captured_opponent.global_position.x - global_position.x)
+			var dir: float = sign(captured_opponent.global_position.x - global_position.x)
 			captured_opponent.take_damage(SOCCER_DAMAGE_PER_HIT, Vector2(dir * 200.0, -60.0))
 			hit_landed.emit(captured_opponent, SOCCER_DAMAGE_PER_HIT)
 		)

@@ -42,7 +42,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	for p in _particles:
-		var c := p["color"]
+		var c: Color = p["color"]
 		c.a = p["alpha"]
 		draw_circle(p["pos"], 3.5, c)
 		draw_circle(p["pos"] + p["vel"] * -0.04, 2.0, c * Color(1,1,1,0.4))

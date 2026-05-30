@@ -326,7 +326,7 @@ func _draw_png(sk: String) -> void:
 	if _flash_timer > 0.0:
 		mod = flash_color
 	elif is_special and is_attacking:
-		var ccolor := Global.CHARACTER_COLORS.get(char_name, Color.WHITE)
+		var ccolor: Color = Global.CHARACTER_COLORS.get(char_name, Color.WHITE)
 		mod = Color.WHITE.lerp(ccolor.lightened(0.35), 0.45)
 
 	draw_texture_rect_region(_png_texture, dst, region, mod)
