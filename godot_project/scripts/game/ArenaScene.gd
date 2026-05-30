@@ -54,22 +54,28 @@ func _setup_background() -> void:
 	var tex := load("res://assets/backgrounds/stage1.png") as Texture2D
 	if tex == null:
 		return
+	# Show the solid sky color behind the stage art for the uncovered upper area.
 	var bg_solid := get_node_or_null("Background") as ColorRect
 	if bg_solid:
-		bg_solid.visible = false
-	# Reduce atmospheric overlays so the stage art shows through more clearly.
+		bg_solid.color = Color(0.22, 0.35, 0.18, 1.0)  # green sky to match stage1
+		bg_solid.visible = true
+		bg_solid.z_index = -101
+	# Remove atmospheric overlays — stage art provides its own atmosphere.
 	var sky_glow := get_node_or_null("SkyGlow") as ColorRect
 	if sky_glow:
-		sky_glow.color.a = 0.12   # reduce from 0.25 to 0.12
+		sky_glow.visible = false
 	var horizon := get_node_or_null("Horizon") as ColorRect
 	if horizon:
-		horizon.color.a = 0.35   # reduce from 0.7 to 0.35
+		horizon.visible = false
+	# Scale to fill viewport width, then align bottom of image to arena floor (y=610).
+	var scale_x := 1280.0 / tex.get_width()
+	var scaled_h := tex.get_height() * scale_x
 	var sprite := Sprite2D.new()
 	sprite.name = "StageBackground"
 	sprite.texture = tex
 	sprite.centered = false
-	sprite.scale = Vector2(1280.0 / tex.get_width(), 720.0 / tex.get_height())
-	sprite.position = Vector2.ZERO
+	sprite.scale = Vector2(scale_x, scale_x)
+	sprite.position = Vector2(0.0, 610.0 - scaled_h)
 	sprite.z_index = -100
 	add_child(sprite)
 
