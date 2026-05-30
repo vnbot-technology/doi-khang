@@ -21,6 +21,7 @@ func _do_special() -> void:
 			opponent.attack_hitbox.monitoring = false
 		if opponent.body_rect and "is_blocking" in opponent.body_rect:
 			opponent.body_rect.set("is_blocking", false)
+		hit_landed.emit(opponent, 5.0)
 	add_special(10.0)
 
 func _do_ultimate() -> void:

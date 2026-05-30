@@ -37,8 +37,8 @@ func _start_round() -> void:
 
 func _reset_positions() -> void:
 	if players.size() >= 2:
-		players[0].global_position = Vector2(300.0, 500.0)
-		players[1].global_position = Vector2(980.0, 500.0)
+		players[0].global_position = Vector2(300.0, 420.0)
+		players[1].global_position = Vector2(980.0, 420.0)
 		players[0].facing_right = true
 		if players[0].body_rect:
 			players[0].body_rect.scale.x = 1.0
