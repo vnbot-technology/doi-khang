@@ -35,3 +35,4 @@ func _do_ultimate() -> void:
 		if opponent.body_rect and "is_blocking" in opponent.body_rect:
 			opponent.body_rect.set("is_blocking", false)
 		opponent.take_damage(20.0, Vector2.ZERO)
+		hit_landed.emit(opponent, 20.0)

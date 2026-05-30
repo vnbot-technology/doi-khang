@@ -38,3 +38,4 @@ func _do_ultimate() -> void:
 	if opponent and is_instance_valid(opponent):
 		var dir := sign(opponent.global_position.x - global_position.x)
 		opponent.take_damage(52.0, Vector2(dir * 460.0, -180.0))
+		hit_landed.emit(opponent, 52.0)

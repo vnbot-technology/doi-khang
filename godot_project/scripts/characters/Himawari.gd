@@ -38,5 +38,7 @@ func _do_ultimate() -> void:
 	if opponent and is_instance_valid(opponent):
 		var d := global_position.distance_to(opponent.global_position)
 		if d < 180.0:
-			opponent.take_damage(48.0, Vector2(sign(opponent.global_position.x - global_position.x) * 320.0, -140.0))
+			var dmg := 48.0
+			opponent.take_damage(dmg, Vector2(sign(opponent.global_position.x - global_position.x) * 320.0, -140.0))
+			hit_landed.emit(opponent, dmg)
 			add_special(20.0)

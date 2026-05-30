@@ -37,15 +37,14 @@ func _do_ultimate() -> void:
 	copter_active = true
 	copter_timer = COPTER_DURATION
 	_set_state(State.ULTIMATE)
-	state_timer = COPTER_DURATION
+	state_timer = 1.0   # gameplay lock 1s; copter visual continues via copter_timer
 	if attack_hitbox:
-		var original_damage := attack_hitbox.damage
 		attack_hitbox.reset()
 		attack_hitbox.scale.x = 1.0 if facing_right else -1.0
-		attack_hitbox.damage = 25.0
+		attack_hitbox.damage = 30.0
 		attack_hitbox.monitoring = true
-		get_tree().create_timer(COPTER_DURATION).timeout.connect(func():
+		get_tree().create_timer(0.9).timeout.connect(func():
 			if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 				attack_hitbox.monitoring = false
-				attack_hitbox.damage = original_damage
+				attack_hitbox.damage = 15.0
 		)

@@ -15,7 +15,7 @@ func _build_ui() -> void:
 	add_child(bg)
 
 	var winner_label := Label.new()
-	winner_label.text = "PLAYER %d WINS!" % Global.last_winner
+	winner_label.text = "PLAYER %d WINS!" % Global.last_winner if Global.last_winner > 0 else "DRAW!"
 	winner_label.position = Vector2(440, 260)
 	winner_label.add_theme_font_size_override("font_size", 52)
 	winner_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.2))

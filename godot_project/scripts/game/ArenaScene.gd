@@ -348,7 +348,7 @@ func _on_round_ended(winner_id: int) -> void:
 	if winner_id > 0:
 		hud.announce("PLAYER %d WINS ROUND!" % winner_id, 2.0)
 	else:
-		hud.announce("DRAW!", 2.0)
+		hud.announce("ROUND DRAW!", 2.0)
 	hud.update_wins(
 		game_manager.round_wins.get(1, 0),
 		game_manager.round_wins.get(2, 0)
@@ -356,7 +356,10 @@ func _on_round_ended(winner_id: int) -> void:
 
 func _on_match_ended(winner_id: int) -> void:
 	Global.last_winner = winner_id
-	hud.announce("PLAYER %d WINS THE MATCH!" % winner_id, 3.0)
+	if winner_id > 0:
+		hud.announce("PLAYER %d WINS THE MATCH!" % winner_id, 3.0)
+	else:
+		hud.announce("DRAW!", 3.0)
 	await get_tree().create_timer(3.5).timeout
 	Global.go_to_scene("res://scenes/ResultScreen.tscn")
 

@@ -68,6 +68,8 @@ func setup(pid: int, prefix: String, local: bool) -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
+	# Passive SP regen: 8 SP/s lets players build toward ultimates over time.
+	add_special(8.0 * delta)
 	_apply_gravity(delta)
 	state_timer -= delta
 	_process_state(delta)
@@ -89,7 +91,7 @@ func _clamp_to_arena() -> void:
 	position.x = clamp(position.x, 80.0, 1200.0)
 
 func _face_opponent() -> void:
-	if opponent and is_instance_valid(opponent) and state not in [State.ATTACK, State.SPECIAL, State.ULTIMATE, State.HURT]:
+	if opponent and is_instance_valid(opponent) and state not in [State.ATTACK, State.SPECIAL, State.ULTIMATE, State.HURT, State.JUMP]:
 		var diff := opponent.global_position.x - global_position.x
 		if diff > 5.0:
 			facing_right = true
@@ -334,6 +336,7 @@ func heal(amount: float) -> void:
 
 func revive() -> void:
 	health = max_health
+	special = 0.0
 	is_dead = false
 	is_invincible = false
 	state = State.IDLE
@@ -358,6 +361,8 @@ func _die() -> void:
 	is_dead = true
 	state = State.DEAD
 	velocity = Vector2.ZERO
+	if attack_hitbox:
+		attack_hitbox.monitoring = false
 	if body_rect and "is_dead" in body_rect:
 		body_rect.set("is_dead", true)
 	SoundManager.play_death(char_name)

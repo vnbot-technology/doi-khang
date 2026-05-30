@@ -34,6 +34,7 @@ func _do_special() -> void:
 			var dmg := PISTOL_DAMAGE * (1.2 if gear2_active else 1.0)
 			var dir := sign(opponent.global_position.x - global_position.x)
 			opponent.take_damage(dmg, Vector2(dir * 350.0, -80.0))
+			hit_landed.emit(opponent, dmg)
 			add_special(5.0)
 
 func _do_ultimate() -> void:

@@ -44,4 +44,5 @@ func _do_ultimate() -> void:
 		if global_position.distance_to(opponent.global_position) < 280.0:
 			var dir := sign(opponent.global_position.x - global_position.x)
 			opponent.take_damage(IMPACT_DAMAGE, Vector2(dir * 400.0, -200.0))
+			hit_landed.emit(opponent, IMPACT_DAMAGE)
 	add_special(20.0)

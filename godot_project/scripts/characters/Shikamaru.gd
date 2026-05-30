@@ -19,6 +19,7 @@ func _do_special() -> void:
 		opponent.velocity.x = 0.0
 		if opponent.body_rect and "is_blocking" in opponent.body_rect:
 			opponent.body_rect.set("is_blocking", false)
+	add_special(10.0)
 
 func _do_ultimate() -> void:
 	if special < 50.0:
@@ -33,4 +34,5 @@ func _do_ultimate() -> void:
 			get_tree().create_timer(float(i) * 0.15).timeout.connect(func():
 				if is_instance_valid(self) and is_instance_valid(captured) and not captured.is_dead:
 					captured.take_damage(10.0, Vector2.ZERO)
+					hit_landed.emit(captured, 10.0)
 			)

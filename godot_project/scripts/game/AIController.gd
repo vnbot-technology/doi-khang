@@ -113,9 +113,12 @@ func _execute_approach(opp: CharacterBase) -> void:
 		_current_input |= IN_LEFT
 	elif dir > 0:
 		_current_input |= IN_RIGHT
-	# Randomly jump during approach to mix up the rush and dodge pokes.
-	# Higher chance at HARD difficulty.
-	var jump_chance: float = [0.02, 0.05, 0.12][int(difficulty)]
+	# Jump when opponent is significantly above (on a higher platform) or randomly
+	# to mix up the rush. Elevated opponent raises jump chance dramatically.
+	var opponent_above := opp.global_position.y < controlled_char.global_position.y - 60.0
+	var jump_chance: float = [0.04, 0.10, 0.20][int(difficulty)]
+	if opponent_above:
+		jump_chance = [0.25, 0.55, 0.85][int(difficulty)]
 	if controlled_char.is_on_floor() and randf() < jump_chance:
 		_current_input |= IN_JUMP
 

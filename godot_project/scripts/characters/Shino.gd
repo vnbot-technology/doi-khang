@@ -42,4 +42,5 @@ func _do_ultimate() -> void:
 			get_tree().create_timer(float(i) * 0.12).timeout.connect(func():
 				if is_instance_valid(self) and is_instance_valid(captured) and not captured.is_dead:
 					captured.take_damage(8.0, Vector2(dir * 60.0, 0.0))
+					hit_landed.emit(captured, 8.0)
 			)

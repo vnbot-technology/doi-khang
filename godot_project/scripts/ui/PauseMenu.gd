@@ -61,5 +61,7 @@ func open() -> void:
 	get_tree().paused = true
 
 func close() -> void:
+	if not visible:
+		return
 	hide()
 	get_tree().paused = false
