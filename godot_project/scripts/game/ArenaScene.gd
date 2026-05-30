@@ -60,35 +60,61 @@ func _ready() -> void:
 	_spawn_players()
 
 func _setup_background() -> void:
-	# Hide all scene overlays — stage art provides all atmosphere.
-	for node_name in ["Background", "SkyGlow", "Horizon"]:
+	# Hide atmospheric overlays — stage art handles all atmosphere.
+	for node_name in ["SkyGlow", "Horizon"]:
 		var n := get_node_or_null(node_name)
-		if n:
-			n.visible = false
-	# Keep the GroundVisual hidden too; stage art shows the floor.
-	var gv := get_node_or_null("Ground/GroundVisual")
+		if n: n.visible = false
+	# GroundVisual provides the solid floor strip below the stage image.
+	var gv := get_node_or_null("Ground/GroundVisual") as ColorRect
 	if gv:
-		gv.visible = false
+		gv.visible = true
 
-	# Pick stage based on selected characters (Naruto stage is default).
 	var stage_file := _pick_stage()
 	var tex := load("res://assets/backgrounds/" + stage_file) as Texture2D
 	if tex == null:
-		# Fallback: dark background colour so characters are still visible.
-		var bg_solid := get_node_or_null("Background") as ColorRect
-		if bg_solid:
-			bg_solid.visible = true
+		var bg := get_node_or_null("Background") as ColorRect
+		if bg: bg.visible = true
 		return
 
-	# Scale non-uniformly to fill the full 1280x720 viewport.
+	# Hide the solid background colour; we'll use a matching sky tint instead.
+	var bg := get_node_or_null("Background") as ColorRect
+	if bg: bg.visible = false
+
+	# Scale uniformly to fill the viewport width. Align the bottom of the
+	# image to the physics floor (y=610) so the visual ground matches exactly
+	# where characters stand. The image extends above y=0 — only the lower
+	# portion (ground + lower sky) is visible in normal play.
+	var scale_x := STAGE_BG_W / tex.get_width()
+	var scaled_h := tex.get_height() * scale_x
 	var sprite := Sprite2D.new()
 	sprite.name = "StageBackground"
 	sprite.texture = tex
 	sprite.centered = false
-	sprite.scale = Vector2(STAGE_BG_W / tex.get_width(), STAGE_BG_H / tex.get_height())
-	sprite.position = Vector2.ZERO
+	sprite.scale = Vector2(scale_x, scale_x)
+	sprite.position = Vector2(0.0, 610.0 - scaled_h)
 	sprite.z_index = -100
 	add_child(sprite)
+
+	# Sky fill: solid colour rectangle that covers the area above the stage art
+	# so the camera never shows a blank gap at the top.
+	var sky := ColorRect.new()
+	sky.name = "SkyFill"
+	sky.size = Vector2(STAGE_BG_W, max(0.0, 610.0 - scaled_h + 100.0))
+	sky.position = Vector2.ZERO
+	sky.color = _sky_color(stage_file)
+	sky.z_index = -101
+	add_child(sky)
+
+func _sky_color(stage_file: String) -> Color:
+	match stage_file:
+		"naruto.png":        return Color(0.62, 0.67, 0.72, 1.0)  # overcast grey
+		"dragonball.png":    return Color(0.4,  0.6,  0.9,  1.0)  # clear blue sky
+		"onepiece.png":      return Color(0.35, 0.6,  0.85, 1.0)  # ocean blue
+		"bleach.png":        return Color(0.55, 0.55, 0.65, 1.0)  # soul society grey
+		"forest.png":        return Color(0.3,  0.5,  0.25, 1.0)  # forest green
+		"hunterxhunter.png": return Color(0.05, 0.05, 0.15, 1.0)  # space / night
+		"shamanking.png":    return Color(0.5,  0.35, 0.2,  1.0)  # earth tones
+	return Color(0.1, 0.1, 0.2, 1.0)
 
 func _pick_stage() -> String:
 	# Map character names to thematic stages.
@@ -249,14 +275,16 @@ func _update_camera(delta: float) -> void:
 	var cur_zoom: float = lerp(_camera.zoom.x, target_zoom, delta * 3.0)
 	_camera.zoom = Vector2(cur_zoom, cur_zoom)
 
-	# Camera bounds: prevent seeing outside the background.
+	# Camera x: clamped within 1280px-wide background.
+	# Camera y: fixed in screen-space (background extends above y=0 and sky fill
+	# covers any gap, so vertical bounds are just the viewport limits).
 	var half_w := 640.0 / cur_zoom
 	var half_h := 360.0 / cur_zoom
 
-	# Y tracks slightly above ground; shifts down as we zoom in.
+	# Y shifts down a bit when zoomed in to keep the ground in frame.
 	var zoom_frac := clamp((cur_zoom - ZOOM_FAR) / (ZOOM_NEAR - ZOOM_FAR), 0.0, 1.0)
 	var target_y := lerp(CAM_Y_BASE, CAM_Y_NEAR, zoom_frac)
-	target_y = clamp(target_y, half_h, STAGE_BG_H - half_h)
+	target_y = clamp(target_y, half_h, 720.0 - half_h)
 
 	var target_x := clamp(mid.x, half_w, STAGE_BG_W - half_w)
 
