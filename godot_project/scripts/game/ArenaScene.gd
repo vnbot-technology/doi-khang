@@ -11,8 +11,6 @@ const DIST_FAR    := 800.0   # player px distance → full zoom-out
 const CAM_Y_BASE  := 360.0   # camera y at zoom=1.0 (full view)
 const CAM_Y_NEAR  := 490.0   # camera y at zoom=ZOOM_NEAR (shows ground better)
 
-# Stage definitions: bg file → [bg_w, bg_h after scaling to 1280x720]
-# Right now every stage is displayed at 1280x720 so limits are fixed.
 const STAGE_BG_W := 1280.0
 const STAGE_BG_H := 720.0
 
@@ -25,6 +23,9 @@ var _shake_intensity: float = 0.0
 var _shake_timer: float = 0.0
 var _flash_overlay: ColorRect = null
 var _flash_timer: float = 0.0
+
+var _stage_file: String = "naruto.png"
+var _spawn_y: float = 400.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -56,68 +57,91 @@ func _ready() -> void:
 	_pause_menu.quit_requested.connect(get_tree().quit)
 
 	_setup_background()
+	_setup_stage()
 	MusicManager.play_battle()
 	_spawn_players()
 
 func _setup_background() -> void:
-	# Hide atmospheric overlays — stage art handles all atmosphere.
 	for node_name in ["SkyGlow", "Horizon"]:
 		var n := get_node_or_null(node_name)
 		if n: n.visible = false
-	# GroundVisual provides the solid floor strip below the stage image.
-	var gv := get_node_or_null("Ground/GroundVisual") as ColorRect
-	if gv:
-		gv.visible = true
 
-	var stage_file := _pick_stage()
-	var tex := load("res://assets/backgrounds/" + stage_file) as Texture2D
+	_stage_file = _pick_stage()
+	var tex := load("res://assets/backgrounds/" + _stage_file) as Texture2D
 	if tex == null:
 		var bg := get_node_or_null("Background") as ColorRect
 		if bg: bg.visible = true
 		return
 
-	# Hide the solid background colour; we'll use a matching sky tint instead.
 	var bg := get_node_or_null("Background") as ColorRect
 	if bg: bg.visible = false
 
-	# Scale uniformly to fill the viewport width. Align the bottom of the
-	# image to the physics floor (y=610) so the visual ground matches exactly
-	# where characters stand. The image extends above y=0 — only the lower
-	# portion (ground + lower sky) is visible in normal play.
-	var scale_x := STAGE_BG_W / tex.get_width()
-	var scaled_h := tex.get_height() * scale_x
+	# Non-uniform scale fills exactly 1280×720 so every platform level is on-screen.
 	var sprite := Sprite2D.new()
 	sprite.name = "StageBackground"
 	sprite.texture = tex
 	sprite.centered = false
-	sprite.scale = Vector2(scale_x, scale_x)
-	sprite.position = Vector2(0.0, 610.0 - scaled_h)
+	sprite.scale = Vector2(STAGE_BG_W / tex.get_width(), STAGE_BG_H / tex.get_height())
+	sprite.position = Vector2.ZERO
 	sprite.z_index = -100
 	add_child(sprite)
 
-	# Sky fill: solid colour rectangle that covers the area above the stage art
-	# so the camera never shows a blank gap at the top.
-	var sky := ColorRect.new()
-	sky.name = "SkyFill"
-	sky.size = Vector2(STAGE_BG_W, max(0.0, 610.0 - scaled_h + 100.0))
-	sky.position = Vector2.ZERO
-	sky.color = _sky_color(stage_file)
-	sky.z_index = -101
-	add_child(sky)
+func _setup_stage() -> void:
+	var layout := StageLayout.get(_stage_file)
+	var floor_y: float  = layout.get("floor_y",   610.0)
+	var tile_color: Color = layout.get("tile_color", Color(0.4, 0.3, 0.2))
+	_spawn_y = layout.get("spawn_y", 400.0)
 
-func _sky_color(stage_file: String) -> Color:
-	match stage_file:
-		"naruto.png":        return Color(0.62, 0.67, 0.72, 1.0)  # overcast grey
-		"dragonball.png":    return Color(0.4,  0.6,  0.9,  1.0)  # clear blue sky
-		"onepiece.png":      return Color(0.35, 0.6,  0.85, 1.0)  # ocean blue
-		"bleach.png":        return Color(0.55, 0.55, 0.65, 1.0)  # soul society grey
-		"forest.png":        return Color(0.3,  0.5,  0.25, 1.0)  # forest green
-		"hunterxhunter.png": return Color(0.05, 0.05, 0.15, 1.0)  # space / night
-		"shamanking.png":    return Color(0.5,  0.35, 0.2,  1.0)  # earth tones
-	return Color(0.1, 0.1, 0.2, 1.0)
+	# Relocate the physics floor to match the stage art.
+	var ground := get_node_or_null("Ground") as StaticBody2D
+	if ground:
+		ground.position.y = floor_y
+		var gv := ground.get_node_or_null("GroundVisual") as ColorRect
+		if gv:
+			gv.color = tile_color
+			gv.visible = true
+		var fl := ground.get_node_or_null("FloorLine") as ColorRect
+		if fl:
+			fl.color = tile_color.lightened(0.35)
+
+	for plat in layout.get("platforms", []):
+		_spawn_platform(
+			float(plat.get("x1", 0)),
+			float(plat.get("x2", 1280)),
+			float(plat.get("y",  300)),
+			tile_color
+		)
+
+func _spawn_platform(x1: float, x2: float, y: float, color: Color) -> void:
+	var width := x2 - x1
+	var body := StaticBody2D.new()
+	# Place body so the top surface of the 16px collision box is at y.
+	body.position = Vector2((x1 + x2) * 0.5, y + 8.0)
+
+	var col := CollisionShape2D.new()
+	col.one_way_collision = true   # characters can jump through from below
+	var rect_shape := RectangleShape2D.new()
+	rect_shape.size = Vector2(width, 16.0)
+	col.shape = rect_shape
+	body.add_child(col)
+
+	# Top highlight strip
+	var top := ColorRect.new()
+	top.size = Vector2(width, 8.0)
+	top.position = Vector2(-width * 0.5, -8.0)
+	top.color = color.lightened(0.25)
+	body.add_child(top)
+
+	# Lower body of platform tile
+	var bot := ColorRect.new()
+	bot.size = Vector2(width, 8.0)
+	bot.position = Vector2(-width * 0.5, 0.0)
+	bot.color = color.darkened(0.15)
+	body.add_child(bot)
+
+	add_child(body)
 
 func _pick_stage() -> String:
-	# Map character names to thematic stages.
 	var chars := Global.selected_characters
 	var all_chars: Array = []
 	for c in chars:
@@ -144,6 +168,10 @@ func _spawn_players() -> void:
 	players_node.add_child(p1)
 	players_node.add_child(p2)
 	player_chars = [p1, p2]
+
+	# Set stage-aware spawn positions now that nodes are in the tree.
+	p1.global_position = Vector2(300.0, _spawn_y)
+	p2.global_position = Vector2(980.0, _spawn_y)
 
 	p1.opponent = p2
 	p2.opponent = p1
@@ -239,7 +267,6 @@ func _create_character(char_name: String, pid: int, prefix: String) -> Character
 
 	char_node.char_name = char_name
 	char_node.setup(pid, prefix, true)
-	char_node.global_position = Vector2(300.0 if pid == 1 else 980.0, 500.0)
 	return char_node
 
 func _process(delta: float) -> void:
@@ -312,6 +339,10 @@ func _on_hit_landed(target: CharacterBase, damage: float, attacker: CharacterBas
 
 func _on_round_started(round_num: int) -> void:
 	hud.show_round(round_num)
+	# Reset to stage spawn positions so every round starts fresh.
+	if player_chars.size() >= 2:
+		player_chars[0].global_position = Vector2(300.0, _spawn_y)
+		player_chars[1].global_position = Vector2(980.0, _spawn_y)
 
 func _on_round_ended(winner_id: int) -> void:
 	if winner_id > 0:
