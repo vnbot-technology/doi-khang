@@ -42,7 +42,7 @@ func _do_ultimate() -> void:
 	velocity.y = 200.0
 	if opponent and is_instance_valid(opponent):
 		if global_position.distance_to(opponent.global_position) < 280.0:
-			var dir := sign(opponent.global_position.x - global_position.x)
+			var dir: float = sign(opponent.global_position.x - global_position.x)
 			opponent.take_damage(IMPACT_DAMAGE, Vector2(dir * 400.0, -200.0))
 			hit_landed.emit(opponent, IMPACT_DAMAGE)
 	add_special(20.0)

@@ -25,6 +25,6 @@ func _do_ultimate() -> void:
 	_set_state(State.ULTIMATE)
 	state_timer = 0.8
 	if opponent and is_instance_valid(opponent):
-		var dir := sign(opponent.global_position.x - global_position.x)
+		var dir: float = sign(opponent.global_position.x - global_position.x)
 		opponent.take_damage(60.0, Vector2(dir * 500.0, -200.0))
 		hit_landed.emit(opponent, 60.0)

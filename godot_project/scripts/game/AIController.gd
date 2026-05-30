@@ -108,7 +108,7 @@ func _decide_action() -> void:
 func _execute_approach(opp: CharacterBase) -> void:
 	# Clear directional bits, then set toward opponent
 	_current_input &= ~(IN_LEFT | IN_RIGHT)
-	var dir := sign(opp.global_position.x - controlled_char.global_position.x)
+	var dir: float = sign(opp.global_position.x - controlled_char.global_position.x)
 	if dir < 0:
 		_current_input |= IN_LEFT
 	elif dir > 0:
@@ -125,7 +125,7 @@ func _execute_approach(opp: CharacterBase) -> void:
 func _retreat(opp: CharacterBase) -> void:
 	# Move away from opponent, occasionally hop back for spacing.
 	_current_input &= ~(IN_LEFT | IN_RIGHT)
-	var dir := -sign(opp.global_position.x - controlled_char.global_position.x)
+	var dir: float = -sign(opp.global_position.x - controlled_char.global_position.x)
 	if dir < 0:
 		_current_input |= IN_LEFT
 	elif dir > 0:

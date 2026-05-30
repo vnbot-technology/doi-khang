@@ -25,7 +25,7 @@ func _on_area_entered(area: Area2D) -> void:
 	if target in already_hit:
 		return
 	already_hit.append(target)
-	var dir := sign(target.global_position.x - owner_character.global_position.x)
+	var dir: float = sign(target.global_position.x - owner_character.global_position.x)
 	var kb := Vector2(dir * knockback_force, -100.0)
 	target.take_damage(damage, kb)
 	# NOTE: do NOT call SoundManager.play_hit() here — CharacterBase.take_damage()

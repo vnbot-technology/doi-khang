@@ -36,7 +36,7 @@ func _do_ultimate() -> void:
 	_set_state(State.ULTIMATE)
 	state_timer = 1.1
 	if opponent and is_instance_valid(opponent):
-		var dir := sign(opponent.global_position.x - global_position.x)
+		var dir: float = sign(opponent.global_position.x - global_position.x)
 		var captured := opponent
 		for i in range(10):
 			get_tree().create_timer(float(i) * 0.1).timeout.connect(func():
