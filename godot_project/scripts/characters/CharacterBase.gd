@@ -5,6 +5,7 @@ signal health_changed(new_hp: float, max_hp: float)
 signal special_changed(new_sp: float)
 signal died
 signal hit_landed(target: CharacterBase, damage: float)
+signal ultimate_activated
 
 const GRAVITY := 980.0
 const JUMP_VELOCITY := -480.0
@@ -190,6 +191,7 @@ func _check_combat_input(input: int) -> void:
 	elif (input & 64) and special >= 50.0:
 		_do_ultimate()
 		if state == State.ULTIMATE:
+			ultimate_activated.emit()
 			_flash_color(Color(1.0, 0.85, 0.0), 0.6)
 			if body_rect and "is_attacking" in body_rect:
 				body_rect.set("is_attacking", true)

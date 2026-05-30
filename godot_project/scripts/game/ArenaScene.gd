@@ -8,8 +8,25 @@ var game_manager: GameManager
 var player_chars: Array[CharacterBase] = []
 var _pause_menu: PauseMenu = null
 
+var _camera: Camera2D = null
+var _shake_intensity: float = 0.0
+var _shake_timer: float = 0.0
+var _flash_overlay: ColorRect = null
+var _flash_timer: float = 0.0
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_camera = Camera2D.new()
+	_camera.enabled = true
+	add_child(_camera)
+	var flash_layer := CanvasLayer.new()
+	flash_layer.layer = 10
+	add_child(flash_layer)
+	_flash_overlay = ColorRect.new()
+	_flash_overlay.color = Color(1, 1, 1, 0)
+	_flash_overlay.size = Vector2(1280, 720)
+	_flash_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash_layer.add_child(_flash_overlay)
 	# GroundCollision shape is now set in GameArena.tscn so we still have
 	# collision even if this script errors out before reaching this point.
 	# Fallback in case the scene was edited and the shape was removed.
@@ -44,6 +61,11 @@ func _spawn_players() -> void:
 
 	p1.opponent = p2
 	p2.opponent = p1
+
+	p1.hit_landed.connect(_on_hit_landed.bind(p1))
+	p2.hit_landed.connect(_on_hit_landed.bind(p2))
+	p1.ultimate_activated.connect(_on_ultimate_activated.bind(p1))
+	p2.ultimate_activated.connect(_on_ultimate_activated.bind(p2))
 
 	hud.setup_players(p1, p2)
 	game_manager.start_match(player_chars)
@@ -120,6 +142,40 @@ func _create_character(char_name: String, pid: int, prefix: String) -> Character
 	char_node.setup(pid, prefix, true)
 	char_node.global_position = Vector2(300.0 if pid == 1 else 980.0, 500.0)
 	return char_node
+
+func _process(delta: float) -> void:
+	if _shake_timer > 0.0:
+		_shake_timer -= delta
+		var offset := Vector2(
+			randf_range(-1.0, 1.0) * _shake_intensity,
+			randf_range(-1.0, 1.0) * _shake_intensity
+		)
+		_camera.offset = offset
+		if _shake_timer <= 0.0:
+			_camera.offset = Vector2.ZERO
+	if _flash_timer > 0.0:
+		_flash_timer -= delta
+		var t := _flash_timer / 0.25
+		_flash_overlay.color.a = t * 0.45
+		if _flash_timer <= 0.0:
+			_flash_overlay.color.a = 0.0
+
+func _on_ultimate_activated(user: CharacterBase) -> void:
+	var color := Global.CHARACTER_COLORS.get(user.char_name, Color.WHITE)
+	_flash_overlay.color = color
+	_flash_overlay.color.a = 0.0
+	_flash_timer = 0.25
+	_shake_intensity = 10.0
+	_shake_timer = 0.25
+
+func _on_hit_landed(target: CharacterBase, damage: float, attacker: CharacterBase) -> void:
+	var hit_pos := target.global_position + Vector2(0, -40)
+	var intensity := clamp(damage / 20.0, 0.5, 2.0)
+	var color := Global.CHARACTER_COLORS.get(attacker.char_name, Color.WHITE)
+	HitEffect.spawn(players_node, hit_pos, color, intensity)
+	if damage >= 30.0:
+		_shake_intensity = clamp(damage * 0.3, 4.0, 14.0)
+		_shake_timer = 0.18
 
 func _on_round_started(round_num: int) -> void:
 	hud.show_round(round_num)
