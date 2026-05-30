@@ -46,8 +46,25 @@ func _ready() -> void:
 	_pause_menu.menu_requested.connect(_on_pause_menu)
 	_pause_menu.quit_requested.connect(get_tree().quit)
 
+	_setup_background()
 	MusicManager.play_battle()
 	_spawn_players()
+
+func _setup_background() -> void:
+	var tex := load("res://assets/backgrounds/stage1.png") as Texture2D
+	if tex == null:
+		return
+	var bg_solid := get_node_or_null("Background") as ColorRect
+	if bg_solid:
+		bg_solid.visible = false
+	var sprite := Sprite2D.new()
+	sprite.name = "StageBackground"
+	sprite.texture = tex
+	sprite.centered = false
+	sprite.scale = Vector2(1280.0 / tex.get_width(), 720.0 / tex.get_height())
+	sprite.position = Vector2.ZERO
+	sprite.z_index = -100
+	add_child(sprite)
 
 func _spawn_players() -> void:
 	var chars := Global.selected_characters

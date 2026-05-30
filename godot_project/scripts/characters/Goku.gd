@@ -82,13 +82,7 @@ func _create_beam_projectile(color: Color, vel: Vector2, dmg: float, size: Vecto
 	proj.add_child(hitbox)
 
 	var script := GDScript.new()
-	script.source_code = """extends Node2D
-var vel: Vector2 = Vector2.ZERO
-func _process(delta: float) -> void:
-	position += vel * delta
-	if global_position.x < -200 or global_position.x > 1600:
-		queue_free()
-"""
+	script.source_code = "extends Node2D\nvar vel: Vector2 = Vector2.ZERO\nfunc _process(delta: float) -> void:\n\tposition += vel * delta\n\tif global_position.x < -200 or global_position.x > 1600:\n\t\tqueue_free()\n"
 	var err := script.reload()
 	if err != OK:
 		push_error("Goku projectile script failed to compile: %s" % err)
