@@ -17,6 +17,8 @@ func _do_special() -> void:
 		opponent.state = CharacterBase.State.HURT
 		opponent.state_timer = 1.5
 		opponent.velocity.x = 0.0
+		if opponent.attack_hitbox:
+			opponent.attack_hitbox.monitoring = false
 		if opponent.body_rect and "is_blocking" in opponent.body_rect:
 			opponent.body_rect.set("is_blocking", false)
 	add_special(10.0)
