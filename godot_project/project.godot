@@ -33,3 +33,4 @@ textures/vram_compression/import_etc2_astc=true
 Global="*res://scripts/Global.gd"
 NetworkManager="*res://scripts/networking/NetworkManager.gd"
 MusicManager="*res://scripts/MusicManager.gd"
+SoundManager="*res://scripts/SoundManager.gd"

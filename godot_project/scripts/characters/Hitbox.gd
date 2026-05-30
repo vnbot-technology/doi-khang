@@ -28,5 +28,6 @@ func _on_area_entered(area: Area2D) -> void:
 	var dir := sign(target.global_position.x - owner_character.global_position.x)
 	var kb := Vector2(dir * knockback_force, -100.0)
 	target.take_damage(damage, kb)
+	SoundManager.play_hit()
 	owner_character.add_special(8.0)
 	owner_character.hit_landed.emit(target, damage)

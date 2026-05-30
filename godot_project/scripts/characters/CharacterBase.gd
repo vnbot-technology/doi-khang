@@ -181,6 +181,7 @@ func _check_combat_input(input: int) -> void:
 	elif (input & 32) and special >= 30.0:
 		_do_special()
 		if state == State.SPECIAL:
+			SoundManager.play_special(char_name)
 			_flash_color(Color(0.3, 0.8, 1.0), 0.4)
 			if body_rect and "is_attacking" in body_rect:
 				body_rect.set("is_attacking", true)
@@ -192,6 +193,7 @@ func _check_combat_input(input: int) -> void:
 		_do_ultimate()
 		if state == State.ULTIMATE:
 			ultimate_activated.emit()
+			SoundManager.play_ultimate(char_name)
 			_flash_color(Color(1.0, 0.85, 0.0), 0.6)
 			if body_rect and "is_attacking" in body_rect:
 				body_rect.set("is_attacking", true)
@@ -203,6 +205,7 @@ func _check_combat_input(input: int) -> void:
 func _jump() -> void:
 	velocity.y = JUMP_VELOCITY
 	_set_state(State.JUMP)
+	SoundManager.play_jump()
 
 func _do_attack() -> void:
 	_set_state(State.ATTACK)
@@ -212,7 +215,7 @@ func _do_attack() -> void:
 		attack_hitbox.scale.x = 1.0 if facing_right else -1.0
 		attack_hitbox.monitoring = true
 	velocity.x += (1.0 if facing_right else -1.0) * 180.0
-	# Trigger attack pose on sprite
+	SoundManager.play_attack(char_name)
 	if body_rect and "is_attacking" in body_rect:
 		body_rect.set("is_attacking", true)
 		get_tree().create_timer(0.2).timeout.connect(func():
@@ -248,6 +251,7 @@ func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> void:
 		health = max(0.0, health - amount)
 		velocity.x += knockback.x * 0.3
 		velocity.y = max(velocity.y + knockback.y * 0.3, -120.0)
+		SoundManager.play_block()
 	else:
 		health = max(0.0, health - amount)
 		velocity.x += knockback.x
@@ -255,6 +259,9 @@ func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> void:
 		if state not in [State.ATTACK, State.SPECIAL, State.ULTIMATE]:
 			_set_state(State.HURT)
 			state_timer = 0.35
+			SoundManager.play_hurt(char_name)
+		else:
+			SoundManager.play_hit()
 	add_special(amount * 0.5)
 	_flash_color(Color.RED, 0.2)
 	health_changed.emit(health, max_health)
@@ -295,6 +302,7 @@ func _die() -> void:
 	velocity = Vector2.ZERO
 	if body_rect and "is_dead" in body_rect:
 		body_rect.set("is_dead", true)
+	SoundManager.play_death(char_name)
 	died.emit()
 
 func _sync_sprite() -> void:
