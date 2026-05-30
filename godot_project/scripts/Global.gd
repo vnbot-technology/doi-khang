@@ -16,9 +16,33 @@ const CHARACTER_COLORS: Dictionary = {
 	"Doraemon": Color(0.1, 0.7, 0.9),
 	"Sakura": Color(0.95, 0.5, 0.7),
 	"Sasuke": Color(0.3, 0.1, 0.6),
+	"Choji": Color(0.95, 0.15, 0.15),
+	"Himawari": Color(0.35, 0.45, 0.9),
+	"Hinata": Color(0.55, 0.35, 0.75),
+	"Kakashi": Color(0.5, 0.5, 0.6),
+	"Kakuzu": Color(0.25, 0.2, 0.15),
+	"Kiba": Color(0.7, 0.45, 0.2),
+	"Kurenai": Color(0.8, 0.15, 0.15),
+	"Neji": Color(0.85, 0.8, 0.7),
+	"Orochimaru": Color(0.75, 0.85, 0.45),
+	"Rock Lee": Color(0.15, 0.65, 0.15),
+	"Sasori": Color(0.65, 0.25, 0.15),
+	"Sasuke TS": Color(0.1, 0.1, 0.35),
+	"Shikadai": Color(0.5, 0.55, 0.4),
+	"Shikamaru": Color(0.5, 0.45, 0.28),
+	"Shino": Color(0.2, 0.35, 0.2),
+	"Shino Adult": Color(0.25, 0.4, 0.25),
+	"Tenten": Color(0.75, 0.42, 0.42),
+	"Tsunade": Color(0.85, 0.7, 0.75),
+	"Zaku": Color(0.6, 0.6, 0.65),
 }
 
-const CHARACTER_NAMES: Array[String] = ["Goku", "Naruto", "Luffy", "Conan", "Doraemon", "Sakura", "Sasuke"]
+const CHARACTER_NAMES: Array[String] = [
+	"Goku", "Naruto", "Luffy", "Conan", "Doraemon", "Sakura", "Sasuke",
+	"Choji", "Himawari", "Hinata", "Kakashi", "Kakuzu", "Kiba", "Kurenai",
+	"Neji", "Orochimaru", "Rock Lee", "Sasori", "Sasuke TS", "Shikadai",
+	"Shikamaru", "Shino", "Shino Adult", "Tenten", "Tsunade", "Zaku",
+]
 
 func _ready() -> void:
 	_setup_input_map()
