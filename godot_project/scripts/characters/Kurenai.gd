@@ -17,6 +17,8 @@ func _do_special() -> void:
 		opponent.state = CharacterBase.State.HURT
 		opponent.state_timer = 1.8
 		opponent.velocity.x = 0.0
+		if opponent.body_rect and "is_blocking" in opponent.body_rect:
+			opponent.body_rect.set("is_blocking", false)
 		add_special(10.0)
 
 func _do_ultimate() -> void:
@@ -30,4 +32,6 @@ func _do_ultimate() -> void:
 		opponent.state = CharacterBase.State.HURT
 		opponent.state_timer = 2.2
 		opponent.velocity = Vector2.ZERO
+		if opponent.body_rect and "is_blocking" in opponent.body_rect:
+			opponent.body_rect.set("is_blocking", false)
 		opponent.take_damage(20.0, Vector2.ZERO)

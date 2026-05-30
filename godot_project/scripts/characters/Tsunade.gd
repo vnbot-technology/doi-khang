@@ -5,6 +5,7 @@ func _ready() -> void:
 	char_name = "Tsunade"
 	max_health = 120.0
 	health = max_health
+	weight = 1.3
 
 func _do_special() -> void:
 	if special < 30.0:

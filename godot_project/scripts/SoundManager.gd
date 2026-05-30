@@ -71,15 +71,32 @@ const CHARACTER_VOICES: Dictionary = {
 		"ultimate":["song095"],
 		"death":   ["song096"],
 	},
+	# Goku and Luffy have no Naruto GBA voice — placeholders documented so
+	# real audio can be slotted in later without touching call sites.
+	"Goku": {
+		"attack":  [],
+		"hurt":    [],
+		"special": [],
+		"ultimate":[],
+		"death":   [],
+	},
+	"Luffy": {
+		"attack":  [],
+		"hurt":    [],
+		"special": [],
+		"ultimate":[],
+		"death":   [],
+	},
 }
 
-const _SFX_POOL_SIZE := 6
+const _SFX_POOL_SIZE := 10
 
 var _sfx_players: Array = []  # AudioStreamPlayer[]
 var _voice_player: AudioStreamPlayer
 
 var _sfx_enabled: bool = true
 var _voice_enabled: bool = true
+var _sfx_round_robin: int = 0
 
 func _ready() -> void:
 	for i in _SFX_POOL_SIZE:
@@ -90,7 +107,9 @@ func _ready() -> void:
 		_sfx_players.append(p)
 	_voice_player = AudioStreamPlayer.new()
 	_voice_player.bus = "Master"
-	_voice_player.volume_db = -6.0
+	# Voice sat 4 dB above SFX at -6 dB which clipped the mix; -12 dB lets
+	# character barks ride just under impact sfx and feel layered.
+	_voice_player.volume_db = -12.0
 	add_child(_voice_player)
 
 # ── Public API ─────────────────────────────────────────────────────────────
@@ -105,6 +124,10 @@ func play_attack(char_name: String = "") -> void:
 	_play_sfx(_pick(_ATTACK_POOL))
 
 func play_jump() -> void:
+	_play_sfx(_pick(_JUMP_POOL))
+
+func play_land() -> void:
+	# Landing reuses the jump pool — same short "movement" thump fits both.
 	_play_sfx(_pick(_JUMP_POOL))
 
 func play_block() -> void:
@@ -137,6 +160,31 @@ func play_death(char_name: String = "") -> void:
 func play_win(char_name: String = "") -> void:
 	_play_sfx(_pick(_WIN_POOL))
 
+# ── Audio settings ─────────────────────────────────────────────────────────
+
+func set_sfx_enabled(enabled: bool) -> void:
+	_sfx_enabled = enabled
+	if not enabled:
+		for p in _sfx_players:
+			(p as AudioStreamPlayer).stop()
+
+func is_sfx_enabled() -> bool:
+	return _sfx_enabled
+
+func set_voice_enabled(enabled: bool) -> void:
+	_voice_enabled = enabled
+	if not enabled:
+		_voice_player.stop()
+
+func is_voice_enabled() -> bool:
+	return _voice_enabled
+
+func set_master_volume(db: float) -> void:
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), db)
+
+func get_master_volume() -> float:
+	return AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Master"))
+
 # ── Internals ───────────────────────────────────────────────────────────────
 
 func _char_voice(char_name: String, event: String) -> String:
@@ -162,9 +210,12 @@ func _play_sfx(path: String) -> void:
 			player.stream = stream
 			player.play()
 			return
-	var first := _sfx_players[0] as AudioStreamPlayer
-	first.stream = stream
-	first.play()
+	# All channels busy — rotate which one we steal so we don't always cut
+	# the same channel's tail.
+	var rr := _sfx_players[_sfx_round_robin % _sfx_players.size()] as AudioStreamPlayer
+	_sfx_round_robin = (_sfx_round_robin + 1) % _sfx_players.size()
+	rr.stream = stream
+	rr.play()
 
 func _play_voice(path: String) -> void:
 	if not _voice_enabled:

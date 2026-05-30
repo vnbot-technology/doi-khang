@@ -10,10 +10,20 @@ signal ultimate_activated
 const GRAVITY := 980.0
 const JUMP_VELOCITY := -480.0
 const MOVE_SPEED := 220.0
+const MAX_FALL_SPEED := 600.0
+# Counter-hit damage threshold: hits at/above this value forcibly interrupt
+# ATTACK/SPECIAL/ULTIMATE states. Pro-fighter mechanic.
+const COUNTER_HIT_THRESHOLD := 20.0
+# Upward knockback ceiling (negative => upward in Godot 2D). Strong launchers
+# get clamped to this so they don't fling characters offscreen.
+const KNOCKBACK_UP_CAP := -160.0
 
 @export var char_name: String = "Base"
 @export var max_health: float = 100.0
 @export var max_special: float = 100.0
+# Character mass for knockback scaling. Heavy chars (Choji/Kakuzu) set this
+# above 1.0 in _ready() to receive less knockback per hit.
+@export var weight: float = 1.0
 
 var health: float = 100.0
 var special: float = 0.0
@@ -24,6 +34,10 @@ var opponent: CharacterBase = null
 
 var facing_right: bool = true
 var is_dead: bool = false
+# Set true by ultimates/specials that should grant brief invincibility.
+# When true, take_damage() returns immediately (no hp loss, no knockback,
+# no flash). Per-character logic toggles this around their move duration.
+var is_invincible: bool = false
 
 # Optional input override (used by AIController). When >= 0, replaces local input.
 # AI sets this each tick via set_input_override(); CharacterBase reads it in _get_input().
@@ -65,6 +79,9 @@ func _physics_process(delta: float) -> void:
 func _apply_gravity(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y += GRAVITY * delta
+		# Clamp downward fall so characters don't reach unplayable terminal velocity.
+		if velocity.y > MAX_FALL_SPEED:
+			velocity.y = MAX_FALL_SPEED
 	else:
 		velocity.y = 0.0
 
@@ -111,7 +128,9 @@ func _state_idle(delta: float) -> void:
 	_check_combat_input(input)
 	if state != State.IDLE:
 		return
-	if input & 128: _set_state(State.BLOCK)
+	# Block is grounded-only (pro fighter rule). Guard even though idle
+	# normally implies grounded — protects against future state coupling.
+	if (input & 128) and is_on_floor(): _set_state(State.BLOCK)
 	elif input & 1:   _set_state(State.WALK)
 	elif input & 2: _set_state(State.WALK)
 	elif (input & 4) and is_on_floor(): _jump()
@@ -122,7 +141,8 @@ func _state_walk(delta: float) -> void:
 	_check_combat_input(input)
 	if state != State.WALK:
 		return
-	if input & 128:
+	# Block is grounded-only (pro fighter rule).
+	if (input & 128) and is_on_floor():
 		_set_state(State.BLOCK)
 		return
 	if input & 1:
@@ -146,7 +166,8 @@ func _state_jump(_delta: float) -> void:
 func _state_crouch(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0, MOVE_SPEED * 12 * delta)
 	var input := _get_input()
-	if input & 128:
+	# Block is grounded-only (pro fighter rule).
+	if (input & 128) and is_on_floor():
 		_set_state(State.BLOCK)
 		return
 	if not (input & 8):
@@ -251,19 +272,38 @@ func _set_state(new_state: State) -> void:
 func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> void:
 	if is_dead:
 		return
+	# i-frames (set by ultimates/specials that grant brief invincibility).
+	# Must come BEFORE block so an invincible attacker doesn't even register a block sfx.
+	if is_invincible:
+		return
 	if state == State.BLOCK:
 		SoundManager.play_block()
 		return
+	# Apply hp loss + knockback scaled by character weight. Heavier chars
+	# (weight > 1) move less per hit. Guard against weight <= 0 division.
+	var w := weight if weight > 0.01 else 1.0
+	health = max(0.0, health - amount)
+	velocity.x += knockback.x / w
+	# Upward knockback is clamped to KNOCKBACK_UP_CAP (e.g. -160). Because
+	# knockback.y is negative for launches, max() picks the *less negative*
+	# (= weaker upward) value, capping launch height. Scaling the cap by
+	# weight keeps heavy chars proportionally grounded.
+	velocity.y = max(knockback.y / w, KNOCKBACK_UP_CAP / w)
+	# State transition:
+	#   - Non-action states => normal HURT.
+	#   - ATTACK/SPECIAL/ULTIMATE => only interrupted by a "counter hit"
+	#     (damage >= threshold). Light hits don't trade-cancel a committed move.
+	var in_action: bool = state in [State.ATTACK, State.SPECIAL, State.ULTIMATE]
+	if not in_action or amount >= COUNTER_HIT_THRESHOLD:
+		# Disable any active melee hitbox so the interrupted move doesn't keep hitting.
+		if in_action and attack_hitbox:
+			attack_hitbox.monitoring = false
+		_set_state(State.HURT)
+		state_timer = 0.35
+		SoundManager.play_hurt(char_name)
 	else:
-		health = max(0.0, health - amount)
-		velocity.x += knockback.x
-		velocity.y = max(knockback.y, -160.0)
-		if state not in [State.ATTACK, State.SPECIAL, State.ULTIMATE]:
-			_set_state(State.HURT)
-			state_timer = 0.35
-			SoundManager.play_hurt(char_name)
-		else:
-			SoundManager.play_hit()
+		# Mid-attack tank: physical impact only, animation continues.
+		SoundManager.play_hit()
 	add_special(amount * 0.5)
 	_flash_color(Color.RED, 0.2)
 	health_changed.emit(health, max_health)
@@ -281,6 +321,7 @@ func heal(amount: float) -> void:
 func revive() -> void:
 	health = max_health
 	is_dead = false
+	is_invincible = false
 	state = State.IDLE
 	state_timer = 0.0
 	velocity = Vector2.ZERO

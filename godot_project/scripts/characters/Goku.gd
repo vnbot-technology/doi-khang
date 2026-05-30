@@ -42,8 +42,7 @@ func _fire_kamehameha() -> void:
 	)
 	get_parent().add_child(proj)
 	proj.global_position = global_position + Vector2((1.0 if facing_right else -1.0) * 60.0, -20.0)
-	# Set velocity AFTER add_child so script is properly initialized
-	proj.set("vel", vel)
+	# vel is already set inside _create_beam_projectile after set_script.
 	# Ensure the projectile's hitbox is monitoring (Hitbox._ready sets it to false)
 	var hb := proj.get_node_or_null("Hitbox") as Hitbox
 	if hb:

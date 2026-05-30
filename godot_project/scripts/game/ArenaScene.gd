@@ -57,6 +57,13 @@ func _setup_background() -> void:
 	var bg_solid := get_node_or_null("Background") as ColorRect
 	if bg_solid:
 		bg_solid.visible = false
+	# Reduce atmospheric overlays so the stage art shows through more clearly.
+	var sky_glow := get_node_or_null("SkyGlow") as ColorRect
+	if sky_glow:
+		sky_glow.color.a = 0.12   # reduce from 0.25 to 0.12
+	var horizon := get_node_or_null("Horizon") as ColorRect
+	if horizon:
+		horizon.color.a = 0.35   # reduce from 0.7 to 0.35
 	var sprite := Sprite2D.new()
 	sprite.name = "StageBackground"
 	sprite.texture = tex
@@ -67,6 +74,10 @@ func _setup_background() -> void:
 	add_child(sprite)
 
 func _spawn_players() -> void:
+	# NOTE: 2v2 mode is not fully implemented. Global.selected_characters may
+	# contain up to 4 entries, but we currently only spawn chars[0] and chars[1].
+	# When 2v2 is wired up, extend this to spawn chars[2] and chars[3] as
+	# teammates and update player_chars / HUD / GameManager accordingly.
 	var chars := Global.selected_characters
 	var name1 := chars[0] if chars.size() > 0 else "Goku"
 	var name2 := chars[1] if chars.size() > 1 else "Naruto"
@@ -88,7 +99,7 @@ func _spawn_players() -> void:
 	hud.setup_players(p1, p2)
 	game_manager.start_match(player_chars)
 
-	if Global.game_mode in ["1vAI", "2vAI", "2v2_ai"]:
+	if Global.game_mode in ["1vAI", "2vAI"]:
 		var ai := AIController.new()
 		ai.difficulty = AIController.Difficulty.MEDIUM
 		add_child(ai)

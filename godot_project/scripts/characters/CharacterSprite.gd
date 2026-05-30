@@ -300,17 +300,13 @@ func _draw_png(sk: String) -> void:
 	if frames.is_empty():
 		return
 	var region: Rect2 = frames[0]
-	var scale := PNG_SCALES.get(char_name, PNG_SCALE)
+	var scale: float = PNG_SCALES.get(char_name, PNG_SCALE)
 	var dw := region.size.x * scale
 	var dh := region.size.y * scale
 	var dst := Rect2(-dw * 0.5, -dh, dw, dh)
 	var mod := flash_color if _flash_timer > 0.0 else Color.WHITE
 	draw_texture_rect_region(_png_texture, dst, region, mod)
-	# Ground shadow
-	for i in int(dw):
-		var t := float(i) / dw
-		var a := 0.35 * sin(t * PI)
-		draw_rect(Rect2(-dw * 0.5 + i, 1, 1, 3), Color(0, 0, 0, a))
+	_draw_shadow(dw)
 
 # Renders a PackedStringArray frame using the given palette.
 # Row 0 = top, last row = bottom. Column 0 = left edge.
@@ -329,13 +325,24 @@ func _render_pixels(frame: PackedStringArray, pal: Dictionary) -> void:
 			var key := line[col]
 			if key == ".":
 				continue
-			var c: Color = flash_color if flash_active else pal.get(key, Color(1, 0, 1))
+			var base_c: Color = pal.get(key, Color(1, 0, 1))
+			var c: Color
+			if flash_active:
+				# Blend 70% flash with 30% base so silhouette detail survives.
+				c = base_c.lerp(flash_color, 0.7)
+			else:
+				c = base_c
 			draw_rect(Rect2(ox + col * PX, oy + row * PX, PX, PX), c)
 
-	# Soft ground shadow
-	var sw := SPRITE_W * PX
-	var sx := -(sw / 2)
-	for i in sw:
-		var t := float(i) / sw
+	_draw_shadow(SPRITE_W * PX)
+
+# Soft elliptical ground shadow centered on the sprite's local origin (feet).
+# Uses a sin-based alpha fall-off so edges fade rather than clip.
+func _draw_shadow(width: float, offset_x: float = 0.0) -> void:
+	var w := int(width)
+	if w <= 0:
+		return
+	for i in w:
+		var t := float(i) / width
 		var a := 0.35 * sin(t * PI)
-		draw_rect(Rect2(sx + i, 1, 1, 3), Color(0, 0, 0, a))
+		draw_rect(Rect2(offset_x - width * 0.5 + i, 1, 1, 3), Color(0, 0, 0, a))

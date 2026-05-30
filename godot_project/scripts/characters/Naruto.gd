@@ -28,6 +28,7 @@ func _do_special() -> void:
 	_set_state(State.SPECIAL)
 	state_timer = 0.5
 	velocity.x = (1.0 if facing_right else -1.0) * 400.0
+	velocity.x = clamp(velocity.x, -500.0, 500.0)
 	if attack_hitbox:
 		var original_damage := attack_hitbox.damage
 		attack_hitbox.reset()

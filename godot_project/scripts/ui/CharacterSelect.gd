@@ -5,6 +5,8 @@ var _confirmed   = [false, false, false, false]
 var _active_slots = []
 var _start_btn   = null
 var _status_labels = []
+# Each entry: [slot: int, cname: String, btn: Button]
+var _char_buttons: Array = []
 
 func _ready() -> void:
 	_active_slots = _compute_slots()
@@ -125,6 +127,7 @@ func _build_panel(x: float, y: float, title: String, slot: int) -> void:
 		btn.position = Vector2(bx, by)
 		btn.pressed.connect(_select.bind(slot, cname))
 		add_child(btn)
+		_char_buttons.append([slot, cname, btn])
 
 	var rows_used = ceili(float(Global.CHARACTER_NAMES.size()) / float(cols))
 	var bottom_y  = row_start_y + rows_used * (btn_h + gap) + 4.0
@@ -151,6 +154,13 @@ func _select(slot: int, cname: String) -> void:
 	if slot < _status_labels.size() and is_instance_valid(_status_labels[slot]):
 		_status_labels[slot].text = "Selected: " + cname
 		_status_labels[slot].add_theme_color_override("font_color", Color(0.9, 0.9, 0.5))
+	# Highlight the picked button for this slot; reset siblings in the same slot.
+	for entry in _char_buttons:
+		var btn := entry[2] as Button
+		if not is_instance_valid(btn):
+			continue
+		if entry[0] == slot:
+			btn.modulate = Color(1.5, 1.5, 0.5) if entry[1] == cname else Color.WHITE
 	_refresh_start()
 
 func _confirm(slot: int) -> void:

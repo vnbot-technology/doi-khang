@@ -14,7 +14,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	time_since_last_hit += delta
-	if time_since_last_hit > 3.0 and not is_dead:
+	if time_since_last_hit > 3.0 and not is_dead and health < max_health:
 		health = min(max_health, health + REGEN_RATE * delta)
 		health_changed.emit(health, max_health)
 	super(delta)

@@ -27,6 +27,7 @@ const RESULT_TRACK:   String = "res://assets/music/track_20.mp3"
 
 var _player: AudioStreamPlayer
 var _current_path: String = ""
+var _should_loop: bool = false
 
 func _ready() -> void:
 	_player = AudioStreamPlayer.new()
@@ -52,11 +53,19 @@ func play_result() -> void:
 func stop() -> void:
 	_player.stop()
 	_current_path = ""
+	_should_loop = false
+
+func set_volume(db: float) -> void:
+	_player.volume_db = db
+
+func get_volume() -> float:
+	return _player.volume_db
 
 func _play(path: String, loop: bool) -> void:
 	if path == _current_path and _player.playing:
 		return
 	_current_path = path
+	_should_loop = loop
 	var stream := load(path) as AudioStream
 	if stream == null:
 		return
@@ -66,8 +75,7 @@ func _play(path: String, loop: bool) -> void:
 	_player.play()
 
 func _on_finished() -> void:
-	# Manual loop fallback for formats that don't support loop flag
-	if _current_path != "":
-		var stream := _player.stream
-		if stream and not (stream is AudioStreamMP3 and (stream as AudioStreamMP3).loop):
-			_player.play()
+	# MP3 tracks loop via AudioStreamMP3.loop, so this rarely fires for them.
+	# Kept as a safety net for any non-looping stream type that should repeat.
+	if _current_path != "" and _should_loop:
+		_player.play()

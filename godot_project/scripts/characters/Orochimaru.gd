@@ -20,6 +20,7 @@ func _do_special() -> void:
 		attack_hitbox.knockback_force = 300.0
 		attack_hitbox.monitoring = true
 	velocity.x += (1.0 if facing_right else -1.0) * 400.0
+	velocity.x = clamp(velocity.x, -500.0, 500.0)
 	get_tree().create_timer(0.3).timeout.connect(func():
 		if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 			attack_hitbox.monitoring = false
@@ -36,8 +37,9 @@ func _do_ultimate() -> void:
 	state_timer = 1.2
 	if opponent and is_instance_valid(opponent):
 		var dir := sign(opponent.global_position.x - global_position.x)
+		var captured := opponent
 		for i in range(4):
 			get_tree().create_timer(float(i) * 0.18).timeout.connect(func():
-				if is_instance_valid(self) and is_instance_valid(opponent) and not opponent.is_dead:
-					opponent.take_damage(14.0, Vector2(dir * 180.0, -50.0))
+				if is_instance_valid(self) and is_instance_valid(captured) and not captured.is_dead:
+					captured.take_damage(14.0, Vector2(dir * 180.0, -50.0))
 			)

@@ -26,6 +26,10 @@ func setup_players(p1: CharacterBase, p2: CharacterBase) -> void:
 	p2_hp_bar.value = p2.health
 	p2_sp_bar.max_value = p2.max_special
 	p2_sp_bar.value = 0.0
+	# P2's bars fill right-to-left for the classic mirrored fighting-game look.
+	# Godot 4 ProgressBar.FillMode.FILL_END_TO_BEGIN = 1
+	p2_hp_bar.fill_mode = 1
+	p2_sp_bar.fill_mode = 1
 	# Use is_instance_valid in case HUD nodes are freed before signal disconnects
 	p1.health_changed.connect(func(hp: float, _mx: float):
 		if is_instance_valid(p1_hp_bar): p1_hp_bar.value = hp
@@ -43,11 +47,21 @@ func setup_players(p1: CharacterBase, p2: CharacterBase) -> void:
 func update_timer(seconds: float) -> void:
 	var display := max(0, int(ceil(seconds)))
 	timer_label.text = "%02d" % display
-	timer_label.modulate = Color.RED if seconds <= 10.0 else Color.WHITE
+	if seconds <= 10.0:
+		# Pulse between deep red and orange when time is critical.
+		var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.01)
+		timer_label.modulate = Color(1.0, pulse * 0.5, 0.0)
+	else:
+		timer_label.modulate = Color.WHITE
 
 func show_round(num: int) -> void:
 	round_label.text = "ROUND %d" % num
 	announce("ROUND %d" % num)
+	# Follow up with "FIGHT!" shortly after the round number lands.
+	get_tree().create_timer(1.0).timeout.connect(func():
+		if is_instance_valid(self):
+			announce("FIGHT!", 0.8)
+	)
 
 func announce(text: String, duration: float = 1.5) -> void:
 	_announce_token += 1
@@ -68,4 +82,12 @@ func _update_win_dots(container: HBoxContainer, count: int) -> void:
 	for i in range(container.get_child_count()):
 		var dot := container.get_child(i) as ColorRect
 		if dot:
-			dot.color = Color.YELLOW if i < count else Color(0.2, 0.2, 0.2)
+			var is_won := i < count
+			dot.color = Color.YELLOW if is_won else Color(0.2, 0.2, 0.2)
+			if is_won and i == count - 1:
+				# Flash the newly-won dot white briefly, then settle to yellow.
+				dot.color = Color.WHITE
+				get_tree().create_timer(0.1).timeout.connect(func():
+					if is_instance_valid(dot):
+						dot.color = Color.YELLOW
+				)

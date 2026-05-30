@@ -3,6 +3,7 @@ class_name RelayClient
 
 # Update RELAY_URL after deploying the relay server
 const RELAY_URL := "wss://doikhang-relay.railway.app"
+const CONNECT_TIMEOUT := 10.0
 
 signal room_created(code: String)
 signal peer_joined(peer_id: int)
@@ -14,6 +15,7 @@ var ws := WebSocketPeer.new()
 var room_code_local: String = ""
 var connected: bool = false
 var _pending_action: String = ""
+var _connect_timeout_timer: float = 0.0
 
 func create_room() -> void:
 	_pending_action = "create"
@@ -28,21 +30,44 @@ func _connect_ws() -> void:
 	var err := ws.connect_to_url(RELAY_URL)
 	if err != OK:
 		push_error("Relay WS connect error: " + error_string(err))
+		return
+	# Arm the connection watchdog so we surface unreachable-relay scenarios
+	# instead of silently spinning in STATE_CONNECTING forever.
+	_connect_timeout_timer = CONNECT_TIMEOUT
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	ws.poll()
 	var ws_state := ws.get_ready_state()
 	match ws_state:
 		WebSocketPeer.STATE_OPEN:
 			if not connected:
 				connected = true
+				_connect_timeout_timer = 0.0  # disarm watchdog
 				_execute_pending()
 			while ws.get_available_packet_count() > 0:
 				_handle_packet(ws.get_packet())
+		WebSocketPeer.STATE_CONNECTING:
+			# Handshake in progress — poll and wait. The watchdog below
+			# enforces an upper bound so we don't hang forever.
+			pass
+		WebSocketPeer.STATE_CLOSING:
+			# Graceful close in flight — keep polling until STATE_CLOSED.
+			pass
 		WebSocketPeer.STATE_CLOSED:
 			if connected:
 				connected = false
+				_connect_timeout_timer = 0.0
 				relay_disconnected.emit()
+
+	# Connection watchdog: if we never reach STATE_OPEN within CONNECT_TIMEOUT,
+	# emit relay_disconnected so callers can surface a clear error to the UI.
+	if not connected and _connect_timeout_timer > 0.0:
+		_connect_timeout_timer -= delta
+		if _connect_timeout_timer <= 0.0:
+			_connect_timeout_timer = 0.0
+			push_warning("Relay connection timed out after %0.1fs" % CONNECT_TIMEOUT)
+			ws.close()
+			relay_disconnected.emit()
 
 func _execute_pending() -> void:
 	match _pending_action:
@@ -83,6 +108,7 @@ func send_to_peer(data: PackedByteArray) -> void:
 func disconnect_relay() -> void:
 	ws.close()
 	connected = false
+	_connect_timeout_timer = 0.0
 
 func _send_json(obj: Dictionary) -> void:
 	ws.send_text(JSON.stringify(obj))

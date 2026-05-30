@@ -3,8 +3,9 @@ class_name Kiba
 
 func _ready() -> void:
 	char_name = "Kiba"
-	max_health = 100.0
+	max_health = 95.0
 	health = max_health
+	weight = 0.9
 
 func _do_special() -> void:
 	if special < 30.0:
@@ -20,6 +21,7 @@ func _do_special() -> void:
 		attack_hitbox.knockback_force = 360.0
 		attack_hitbox.monitoring = true
 	velocity.x += (1.0 if facing_right else -1.0) * 480.0
+	velocity.x = clamp(velocity.x, -500.0, 500.0)
 	get_tree().create_timer(0.4).timeout.connect(func():
 		if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 			attack_hitbox.monitoring = false
@@ -41,6 +43,7 @@ func _do_ultimate() -> void:
 		attack_hitbox.knockback_force = 520.0
 		attack_hitbox.monitoring = true
 	velocity.x += (1.0 if facing_right else -1.0) * 380.0
+	velocity.x = clamp(velocity.x, -500.0, 500.0)
 	get_tree().create_timer(0.8).timeout.connect(func():
 		if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 			attack_hitbox.monitoring = false

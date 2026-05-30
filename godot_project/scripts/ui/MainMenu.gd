@@ -6,9 +6,30 @@ var _sub_label: Label
 
 func _ready() -> void:
 	MusicManager.play_menu()
+	_build_title()
 	_build_main()
 	_build_sub()
 	_show_main()
+
+# ── Title ──────────────────────────────────────────────────────────────────
+
+func _build_title() -> void:
+	var title := Label.new()
+	title.text = "DOI KHANG"
+	title.position = Vector2(440, 150)
+	title.add_theme_font_size_override("font_size", 64)
+	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
+	title.add_theme_color_override("font_shadow_color", Color(0.8, 0.2, 0.0, 0.8))
+	title.add_theme_constant_override("shadow_offset_x", 3)
+	title.add_theme_constant_override("shadow_offset_y", 3)
+	add_child(title)
+
+	var subtitle := Label.new()
+	subtitle.text = "Anime Fighting Game"
+	subtitle.position = Vector2(490, 222)
+	subtitle.add_theme_font_size_override("font_size", 20)
+	subtitle.add_theme_color_override("font_color", Color(0.8, 0.8, 1.0))
+	add_child(subtitle)
 
 # ── Main menu ──────────────────────────────────────────────────────────────
 
@@ -18,9 +39,9 @@ func _build_main() -> void:
 	_main_panel.add_theme_constant_override("separation", 14)
 	add_child(_main_panel)
 
-	_add_btn(_main_panel, "⚔  PvP",    func(): _show_sub("pvp"))
-	_add_btn(_main_panel, "🤖  vs AI",  func(): _show_sub("ai"))
-	_add_btn(_main_panel, "🌐  Online", func(): _show_sub("online"))
+	_add_btn(_main_panel, "[ PvP ]",    func(): _show_sub("pvp"))
+	_add_btn(_main_panel, "[ vs AI ]",  func(): _show_sub("ai"))
+	_add_btn(_main_panel, "[ Online ]", func(): _show_sub("online"))
 	_add_btn(_main_panel, "Quit",       get_tree().quit)
 
 # ── Sub-mode panel (slides in after category choice) ───────────────────────
@@ -50,19 +71,19 @@ func _show_sub(category: String) -> void:
 		_sub_panel.get_child(_sub_panel.get_child_count() - 1).queue_free()
 
 	if category == "pvp":
-		_sub_label.text = "⚔  PvP — Choose mode"
+		_sub_label.text = "[ PvP ] — Choose mode"
 		_add_btn(_sub_panel, "1 vs 1",      func(): _go_select("1v1"))
 		_add_btn(_sub_panel, "2 vs 2",      func(): _go_select("2v2"))
 	elif category == "ai":
-		_sub_label.text = "🤖  vs AI — Choose mode"
+		_sub_label.text = "[ vs AI ] — Choose mode"
 		_add_btn(_sub_panel, "1 vs AI",     func(): _go_select("1vAI"))
 		_add_btn(_sub_panel, "2 vs AI",     func(): _go_select("2vAI"))
 	else:  # online
-		_sub_label.text = "🌐  Online — Choose mode"
+		_sub_label.text = "[ Online ] — Choose mode"
 		_add_btn(_sub_panel, "1 vs 1",      func(): _go_lobby("1v1"))
 		_add_btn(_sub_panel, "2 vs 2",      func(): _go_lobby("2v2"))
 
-	_add_btn(_sub_panel, "← Back", _show_main)
+	_add_btn(_sub_panel, "< Back", _show_main)
 	_sub_panel.visible = true
 
 func _show_main() -> void:

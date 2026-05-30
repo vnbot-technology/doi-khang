@@ -20,6 +20,7 @@ func _do_special() -> void:
 		attack_hitbox.knockback_force = 400.0
 		attack_hitbox.monitoring = true
 	velocity.x += (1.0 if facing_right else -1.0) * 560.0
+	velocity.x = clamp(velocity.x, -500.0, 500.0)
 	get_tree().create_timer(0.4).timeout.connect(func():
 		if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 			attack_hitbox.monitoring = false
@@ -41,6 +42,7 @@ func _do_ultimate() -> void:
 		attack_hitbox.knockback_force = 560.0
 		attack_hitbox.monitoring = true
 	velocity.x += (1.0 if facing_right else -1.0) * 200.0
+	velocity.x = clamp(velocity.x, -500.0, 500.0)
 	get_tree().create_timer(0.9).timeout.connect(func():
 		if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 			attack_hitbox.monitoring = false

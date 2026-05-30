@@ -28,6 +28,8 @@ func _on_area_entered(area: Area2D) -> void:
 	var dir := sign(target.global_position.x - owner_character.global_position.x)
 	var kb := Vector2(dir * knockback_force, -100.0)
 	target.take_damage(damage, kb)
-	SoundManager.play_hit()
+	# NOTE: do NOT call SoundManager.play_hit() here — CharacterBase.take_damage()
+	# is the single source of truth for combat audio (hurt/hit/block). Calling it
+	# from both sites caused the double-sound-on-hit bug.
 	owner_character.add_special(8.0)
 	owner_character.hit_landed.emit(target, damage)
