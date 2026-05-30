@@ -17,7 +17,7 @@ var _flash_timer: float = 0.0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_camera = Camera2D.new()
-	_camera.enabled = true
+	_camera.position = Vector2(640, 360)
 	add_child(_camera)
 	var flash_layer := CanvasLayer.new()
 	flash_layer.layer = 10

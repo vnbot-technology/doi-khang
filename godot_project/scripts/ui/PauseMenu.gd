@@ -11,16 +11,23 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	layer = 10
 
-	var panel := ColorRect.new()
-	panel.color = Color(0, 0, 0, 0.72)
+	var panel := Control.new()
 	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(panel)
 	_visible_panel = panel
 
+	var bg := ColorRect.new()
+	bg.color = Color(0, 0, 0, 0.72)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	panel.add_child(bg)
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	panel.add_child(center)
+
 	var vbox := VBoxContainer.new()
-	vbox.set_anchors_preset(Control.PRESET_CENTER)
 	vbox.add_theme_constant_override("separation", 16)
-	panel.add_child(vbox)
+	center.add_child(vbox)
 
 	var title := Label.new()
 	title.text = "PAUSED"
