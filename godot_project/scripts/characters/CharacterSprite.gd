@@ -264,6 +264,10 @@ func _draw() -> void:
 	elif is_walking:   sk = "walk%d" % _walk_tick
 	else:              sk = "idle%d" % _anim_tick
 
+	# Retry PNG load in case _ready() ran before the import cache was ready.
+	if _png_texture == null and char_name in PNG_SPRITE_PATHS:
+		_png_texture = load(PNG_SPRITE_PATHS[char_name]) as Texture2D
+
 	if _png_texture != null:
 		_draw_png(sk)
 		return
@@ -291,6 +295,14 @@ func _draw() -> void:
 			frame = PixelSakura.get_frame(sk)
 			pal   = PixelSakura.PALETTE
 		_:
+			# Guaranteed fallback: draw a colored silhouette so the character
+			# is always visible even when sprites fail to load.
+			var ccolor: Color = Global.CHARACTER_COLORS.get(char_name, Color.WHITE)
+			if _flash_timer > 0.0:
+				ccolor = flash_color
+			draw_rect(Rect2(-18.0, -78.0, 36.0, 78.0), ccolor)
+			draw_rect(Rect2(-12.0, -96.0, 24.0, 20.0), ccolor)
+			_draw_shadow(36.0)
 			return
 
 	_render_pixels(frame, pal)
