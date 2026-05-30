@@ -12,11 +12,10 @@ const SPRITE_W := 20    # art pixels wide (all characters use the same grid)
 # PNG spritesheet paths keyed by char_name
 const PNG_SPRITE_PATHS: Dictionary = {
 	"Sasuke": "res://assets/sprites/sasuke_sheet.png",
+	"Naruto": "res://assets/sprites/naruto_sheet.png",
 }
 
 # Per-character frame regions (Rect2) keyed by animation state name.
-# Auto-detected bounding boxes from white-background spritesheet.
-# Scale PNG_SCALE is applied at draw time.
 const PNG_FRAME_DATA: Dictionary = {
 	"Sasuke": {
 		"idle0":  [Rect2(255,  55, 47, 46)],
@@ -28,10 +27,27 @@ const PNG_FRAME_DATA: Dictionary = {
 		"block":  [Rect2(378,  56, 43, 45)],
 		"hurt":   [Rect2(735, 174, 51, 47)],
 		"dead":   [Rect2(862, 199, 47, 23)],
-	}
+	},
+	"Naruto": {
+		"idle0":  [Rect2( 14, 1032, 53, 60)],
+		"idle1":  [Rect2(159, 1032, 47, 59)],
+		"walk0":  [Rect2(  6,  581, 50, 58)],
+		"walk1":  [Rect2(136,  581, 61, 56)],
+		"jump":   [Rect2( 33,  723, 46, 58)],
+		"attack": [Rect2( 68,  581, 58, 57)],
+		"block":  [Rect2( 81, 1033, 52, 57)],
+		"hurt":   [Rect2(213, 1114, 63, 33)],
+		"dead":   [Rect2(284, 1132, 65, 21)],
+	},
 }
 
-const PNG_SCALE := 2.0   # render PNG frames at 2× (walk frames ~47px → ~94px tall)
+# Per-character render scales (fallback: 2.0)
+const PNG_SCALES: Dictionary = {
+	"Sasuke": 2.0,
+	"Naruto": 1.5,
+}
+
+const PNG_SCALE := 2.0   # kept for fallback; use PNG_SCALES.get(char_name, PNG_SCALE)
 
 var _png_texture: Texture2D = null
 
@@ -123,8 +139,9 @@ func _draw_png(sk: String) -> void:
 	if frames.is_empty():
 		return
 	var region: Rect2 = frames[0]
-	var dw := region.size.x * PNG_SCALE
-	var dh := region.size.y * PNG_SCALE
+	var scale := PNG_SCALES.get(char_name, PNG_SCALE)
+	var dw := region.size.x * scale
+	var dh := region.size.y * scale
 	var dst := Rect2(-dw * 0.5, -dh, dw, dh)
 	var mod := flash_color if _flash_timer > 0.0 else Color.WHITE
 	draw_texture_rect_region(_png_texture, dst, region, mod)
