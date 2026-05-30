@@ -31,8 +31,8 @@ func _compute_slots() -> Array[int]:
 func _build_ui() -> void:
 	var header = Label.new()
 	header.text = _header_text()
-	header.position = Vector2(200, 22)
-	header.add_theme_font_size_override("font_size", 26)
+	header.position = Vector2(380, 16)
+	header.add_theme_font_size_override("font_size", 22)
 	header.add_theme_color_override("font_color", Color(1, 0.9, 0.4))
 	add_child(header)
 
@@ -43,8 +43,8 @@ func _build_ui() -> void:
 
 	_start_btn = Button.new()
 	_start_btn.text = "START FIGHT!"
-	_start_btn.custom_minimum_size = Vector2(220, 52)
-	_start_btn.add_theme_font_size_override("font_size", 22)
+	_start_btn.custom_minimum_size = Vector2(220, 48)
+	_start_btn.add_theme_font_size_override("font_size", 20)
 	_start_btn.position = Vector2(530, 660)
 	_start_btn.disabled = true
 	_start_btn.pressed.connect(_start_game)
@@ -58,18 +58,18 @@ func _build_ui() -> void:
 		wlbl.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0))
 		add_child(wlbl)
 
-	var back = Button.new()
-	back.text = "Back"
-	back.custom_minimum_size = Vector2(120, 40)
-	back.position = Vector2(30, 670)
-	back.pressed.connect(func(): Global.go_to_scene("res://scenes/MainMenu.tscn"))
-	add_child(back)
+	var back_btn = Button.new()
+	back_btn.text = "◀ Back"
+	back_btn.custom_minimum_size = Vector2(120, 40)
+	back_btn.position = Vector2(20, 665)
+	back_btn.pressed.connect(func(): Global.go_to_scene("res://scenes/MainMenu.tscn"))
+	add_child(back_btn)
 
 	if Global.mode_category == "ai":
 		var lbl = Label.new()
 		lbl.text = "AI will pick automatically"
 		lbl.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0))
-		lbl.position = Vector2(700, 90)
+		lbl.position = Vector2(700, 50)
 		add_child(lbl)
 
 func _header_text() -> String:
@@ -82,15 +82,15 @@ func _header_text() -> String:
 
 func _build_1v1_panels() -> void:
 	var panel_count = 1 if Global.mode_category == "ai" else 2
-	var labels  = ["PLAYER 1  (WASD + J/K/L/Shift)", "PLAYER 2  (Arrows + Numpad 1/2/3/0)"]
-	var x_pos   = [60, 680]
+	var labels  = ["PLAYER 1  (WASD+J/K/L)", "PLAYER 2  (Arrows+Numpad)"]
+	var x_pos   = [20, 660]
 	var slots   = [0, 2]
 	for i in range(panel_count):
-		_build_panel(x_pos[i], 80, labels[i], slots[i])
+		_build_panel(x_pos[i], 70, labels[i], slots[i])
 
 func _build_team_panels() -> void:
 	var team_count = 1 if Global.mode_category == "ai" else 2
-	var x_pos = [30, 650]
+	var x_pos = [20, 660]
 	var tlabels = [
 		["P1 — Fighter A", "P1 — Fighter B"],
 		["P2 — Fighter A", "P2 — Fighter B"],
@@ -98,22 +98,22 @@ func _build_team_panels() -> void:
 	var tslots = [[0, 1], [2, 3]]
 	for t in range(team_count):
 		for f in range(2):
-			_build_panel(x_pos[t], 80 if f == 0 else 390, tlabels[t][f], tslots[t][f])
+			_build_panel(x_pos[t], 70 if f == 0 else 370, tlabels[t][f], tslots[t][f])
 
-# Builds a character selection panel using absolute positioning.
-# No VBoxContainer — avoids Godot 4.3 deferred-layout size-zero issue.
+# Builds a character selection panel. Uses 4 columns and compact buttons
+# so 26 characters + confirm fit within the 720px viewport.
 func _build_panel(x: float, y: float, title: String, slot: int) -> void:
 	var lbl = Label.new()
 	lbl.text = title
 	lbl.position = Vector2(x, y)
-	lbl.add_theme_font_size_override("font_size", 15)
+	lbl.add_theme_font_size_override("font_size", 14)
 	add_child(lbl)
 
-	var btn_w = 95.0
-	var btn_h = 54.0
-	var gap   = 4.0
-	var cols  = 3
-	var row_start_y = y + 24.0
+	var btn_w = 120.0
+	var btn_h = 42.0
+	var gap   = 3.0
+	var cols  = 4
+	var row_start_y = y + 22.0
 
 	for i in range(Global.CHARACTER_NAMES.size()):
 		var cname = Global.CHARACTER_NAMES[i]
@@ -135,6 +135,7 @@ func _build_panel(x: float, y: float, title: String, slot: int) -> void:
 	var status = Label.new()
 	status.text = "— not selected —"
 	status.position = Vector2(x, bottom_y)
+	status.add_theme_font_size_override("font_size", 13)
 	status.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 	add_child(status)
 	while _status_labels.size() <= slot:
@@ -143,8 +144,8 @@ func _build_panel(x: float, y: float, title: String, slot: int) -> void:
 
 	var confirm = Button.new()
 	confirm.text = "CONFIRM"
-	confirm.custom_minimum_size = Vector2(200, 42)
-	confirm.position = Vector2(x, bottom_y + 26.0)
+	confirm.custom_minimum_size = Vector2(200, 38)
+	confirm.position = Vector2(x, bottom_y + 22.0)
 	confirm.pressed.connect(_confirm.bind(slot))
 	add_child(confirm)
 
