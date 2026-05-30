@@ -14,10 +14,10 @@ func _do_special() -> void:
 	_set_state(State.SPECIAL)
 	state_timer = 0.4
 	if opponent and is_instance_valid(opponent):
-				opponent.state = CharacterBase.State.HURT
-				opponent.state_timer = 1.8
-				opponent.velocity.x = 0.0
-				add_special(10.0)
+		opponent.state = CharacterBase.State.HURT
+		opponent.state_timer = 1.8
+		opponent.velocity.x = 0.0
+		add_special(10.0)
 
 func _do_ultimate() -> void:
 	if special < 50.0:
@@ -27,7 +27,7 @@ func _do_ultimate() -> void:
 	_set_state(State.ULTIMATE)
 	state_timer = 1.0
 	if opponent and is_instance_valid(opponent):
-				opponent.state = CharacterBase.State.HURT
-				opponent.state_timer = 2.2
-				opponent.velocity = Vector2.ZERO
-				opponent.take_damage(20.0, Vector2.ZERO)
+		opponent.state = CharacterBase.State.HURT
+		opponent.state_timer = 2.2
+		opponent.velocity = Vector2.ZERO
+		opponent.take_damage(20.0, Vector2.ZERO)

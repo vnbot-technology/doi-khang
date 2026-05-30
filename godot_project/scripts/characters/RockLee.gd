@@ -16,10 +16,11 @@ func _do_special() -> void:
 	if attack_hitbox:
 		attack_hitbox.reset()
 		attack_hitbox.scale.x = 1.0 if facing_right else -1.0
+		attack_hitbox.damage = 30.0
+		attack_hitbox.knockback_force = 400.0
 		attack_hitbox.monitoring = true
 	velocity.x += (1.0 if facing_right else -1.0) * 420.0
-			velocity.y = -220.0
-			attack_hitbox.damage = 30.0; attack_hitbox.knockback_force = 400.0
+	velocity.y = -220.0
 	get_tree().create_timer(0.4).timeout.connect(func():
 		if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 			attack_hitbox.monitoring = false
@@ -37,10 +38,11 @@ func _do_ultimate() -> void:
 	if attack_hitbox:
 		attack_hitbox.reset()
 		attack_hitbox.scale.x = 1.0 if facing_right else -1.0
+		attack_hitbox.damage = 55.0
+		attack_hitbox.knockback_force = 560.0
 		attack_hitbox.monitoring = true
-	attack_hitbox.damage = 55.0; attack_hitbox.knockback_force = 560.0
-			velocity.x += (1.0 if facing_right else -1.0) * 350.0
-			velocity.y = -180.0
+	velocity.x += (1.0 if facing_right else -1.0) * 350.0
+	velocity.y = -180.0
 	get_tree().create_timer(0.9).timeout.connect(func():
 		if is_instance_valid(self) and is_instance_valid(attack_hitbox):
 			attack_hitbox.monitoring = false

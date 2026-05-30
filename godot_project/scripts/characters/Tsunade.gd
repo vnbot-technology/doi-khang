@@ -14,7 +14,7 @@ func _do_special() -> void:
 	_set_state(State.SPECIAL)
 	state_timer = 0.5
 	heal(25.0)
-			add_special(15.0)
+	add_special(15.0)
 
 func _do_ultimate() -> void:
 	if special < 50.0:
@@ -24,5 +24,5 @@ func _do_ultimate() -> void:
 	_set_state(State.ULTIMATE)
 	state_timer = 0.8
 	if opponent and is_instance_valid(opponent):
-				var dir := sign(opponent.global_position.x - global_position.x)
-				opponent.take_damage(60.0, Vector2(dir*500.0, -200.0))
+		var dir := sign(opponent.global_position.x - global_position.x)
+		opponent.take_damage(60.0, Vector2(dir * 500.0, -200.0))
