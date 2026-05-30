@@ -16,9 +16,9 @@ var _block_timer: float = 0.0
 var _retreat_timer: float = 0.0
 
 const REACTION_TIMES: Dictionary = {
-	0: 0.5,
-	1: 0.2,
-	2: 0.08,
+	0: 0.35,   # EASY
+	1: 0.10,   # MEDIUM — was 0.2, felt too passive
+	2: 0.04,   # HARD
 }
 const ATTACK_RANGE := 180.0
 const APPROACH_RANGE := 400.0

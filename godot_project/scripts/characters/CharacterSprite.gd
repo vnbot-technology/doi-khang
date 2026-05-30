@@ -219,6 +219,7 @@ func _ready() -> void:
 var char_name: String = ""
 var base_color: Color = Color.WHITE  # kept for API compatibility
 var is_attacking: bool = false
+var is_special: bool = false   # true when current attack is a skill/ultimate (not normal attack)
 var is_blocking: bool = false
 var is_dead: bool = false
 var is_walking: bool = false
@@ -303,8 +304,31 @@ func _draw_png(sk: String) -> void:
 	var scale: float = PNG_SCALES.get(char_name, PNG_SCALE)
 	var dw := region.size.x * scale
 	var dh := region.size.y * scale
+
+	# Cap rendered height per frame type so large sprite-sheet sequences (attack
+	# moves, jump arcs) don't explode to hundreds of screen pixels.
+	var cap: float
+	match sk:
+		"attack": cap = 115.0
+		"jump":   cap = 108.0
+		"hurt":   cap = 100.0
+		_:        cap = 98.0
+	if dh > cap:
+		var r := cap / dh
+		dw *= r
+		dh = cap
+
 	var dst := Rect2(-dw * 0.5, -dh, dw, dh)
-	var mod := flash_color if _flash_timer > 0.0 else Color.WHITE
+
+	# Normal attack: plain white (brief flash already applied by _flash_color).
+	# Special/ultimate: persistent character-color tint so they look distinct.
+	var mod := Color.WHITE
+	if _flash_timer > 0.0:
+		mod = flash_color
+	elif is_special and is_attacking:
+		var ccolor := Global.CHARACTER_COLORS.get(char_name, Color.WHITE)
+		mod = Color.WHITE.lerp(ccolor.lightened(0.35), 0.45)
+
 	draw_texture_rect_region(_png_texture, dst, region, mod)
 	_draw_shadow(dw)
 

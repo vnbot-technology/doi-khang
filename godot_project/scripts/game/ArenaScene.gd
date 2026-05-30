@@ -184,7 +184,7 @@ func _spawn_players() -> void:
 	hud.setup_players(p1, p2)
 	game_manager.start_match(player_chars)
 
-	if Global.game_mode in ["1vAI", "2vAI"]:
+	if Global.game_mode in ["1vAI", "2vAI"] or Global.mode_submode in ["1vAI", "2vAI"]:
 		var ai := AIController.new()
 		ai.difficulty = AIController.Difficulty.MEDIUM
 		add_child(ai)

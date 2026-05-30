@@ -8,7 +8,7 @@ signal hit_landed(target: CharacterBase, damage: float)
 signal ultimate_activated
 
 const GRAVITY := 980.0
-const JUMP_VELOCITY := -480.0
+const JUMP_VELOCITY := -700.0
 const MOVE_SPEED := 220.0
 const MAX_FALL_SPEED := 600.0
 # Counter-hit damage threshold: hits at/above this value forcibly interrupt
@@ -210,10 +210,14 @@ func _check_combat_input(input: int) -> void:
 			SoundManager.play_special(char_name)
 			_flash_color(Color(0.3, 0.8, 1.0), 0.4)
 			if body_rect and "is_attacking" in body_rect:
+				if "is_special" in body_rect:
+					body_rect.set("is_special", true)
 				body_rect.set("is_attacking", true)
 				get_tree().create_timer(0.5).timeout.connect(func():
 					if is_instance_valid(self) and is_instance_valid(body_rect):
 						body_rect.set("is_attacking", false)
+						if "is_special" in body_rect:
+							body_rect.set("is_special", false)
 				)
 	elif (input & 64) and special >= 50.0:
 		_do_ultimate()
@@ -222,10 +226,14 @@ func _check_combat_input(input: int) -> void:
 			SoundManager.play_ultimate(char_name)
 			_flash_color(Color(1.0, 0.85, 0.0), 0.6)
 			if body_rect and "is_attacking" in body_rect:
+				if "is_special" in body_rect:
+					body_rect.set("is_special", true)
 				body_rect.set("is_attacking", true)
 				get_tree().create_timer(0.9).timeout.connect(func():
 					if is_instance_valid(self) and is_instance_valid(body_rect):
 						body_rect.set("is_attacking", false)
+						if "is_special" in body_rect:
+							body_rect.set("is_special", false)
 				)
 
 func _jump() -> void:
@@ -243,6 +251,8 @@ func _do_attack() -> void:
 	velocity.x += (1.0 if facing_right else -1.0) * 180.0
 	SoundManager.play_attack(char_name)
 	if body_rect and "is_attacking" in body_rect:
+		if "is_special" in body_rect:
+			body_rect.set("is_special", false)
 		body_rect.set("is_attacking", true)
 		get_tree().create_timer(0.2).timeout.connect(func():
 			if is_instance_valid(self) and is_instance_valid(body_rect):
@@ -300,6 +310,10 @@ func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> void:
 			attack_hitbox.monitoring = false
 		_set_state(State.HURT)
 		state_timer = 0.35
+		# Clear attack visual so hurt frame shows immediately (not covered by attack frame).
+		if body_rect:
+			if "is_attacking" in body_rect: body_rect.set("is_attacking", false)
+			if "is_special"  in body_rect: body_rect.set("is_special",   false)
 		SoundManager.play_hurt(char_name)
 	else:
 		# Mid-attack tank: physical impact only, animation continues.
@@ -329,6 +343,7 @@ func revive() -> void:
 		var sp := body_rect as CharacterSprite
 		sp.is_dead = false
 		sp.is_attacking = false
+		sp.is_special = false
 		sp.is_blocking = false
 		sp.is_walking = false
 		sp.is_jumping = false
