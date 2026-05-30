@@ -4,6 +4,18 @@ extends Node2D
 @onready var hud: HUD = $HUD
 @onready var ground_col: CollisionShape2D = $Ground/GroundCollision
 
+const ZOOM_NEAR   := 1.6     # max zoom-in (close combat)
+const ZOOM_FAR    := 1.0     # min zoom / max zoom-out (full stage)
+const DIST_NEAR   := 160.0   # player px distance → max zoom-in
+const DIST_FAR    := 800.0   # player px distance → full zoom-out
+const CAM_Y_BASE  := 360.0   # camera y at zoom=1.0 (full view)
+const CAM_Y_NEAR  := 490.0   # camera y at zoom=ZOOM_NEAR (shows ground better)
+
+# Stage definitions: bg file → [bg_w, bg_h after scaling to 1280x720]
+# Right now every stage is displayed at 1280x720 so limits are fixed.
+const STAGE_BG_W := 1280.0
+const STAGE_BG_H := 720.0
+
 var game_manager: GameManager
 var player_chars: Array[CharacterBase] = []
 var _pause_menu: PauseMenu = null
@@ -27,9 +39,6 @@ func _ready() -> void:
 	_flash_overlay.size = Vector2(1280, 720)
 	_flash_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	flash_layer.add_child(_flash_overlay)
-	# GroundCollision shape is now set in GameArena.tscn so we still have
-	# collision even if this script errors out before reaching this point.
-	# Fallback in case the scene was edited and the shape was removed.
 	if ground_col.shape == null:
 		ground_col.shape = WorldBoundaryShape2D.new()
 
@@ -51,39 +60,55 @@ func _ready() -> void:
 	_spawn_players()
 
 func _setup_background() -> void:
-	var tex := load("res://assets/backgrounds/stage1.png") as Texture2D
+	# Hide all scene overlays — stage art provides all atmosphere.
+	for node_name in ["Background", "SkyGlow", "Horizon"]:
+		var n := get_node_or_null(node_name)
+		if n:
+			n.visible = false
+	# Keep the GroundVisual hidden too; stage art shows the floor.
+	var gv := get_node_or_null("Ground/GroundVisual")
+	if gv:
+		gv.visible = false
+
+	# Pick stage based on selected characters (Naruto stage is default).
+	var stage_file := _pick_stage()
+	var tex := load("res://assets/backgrounds/" + stage_file) as Texture2D
 	if tex == null:
+		# Fallback: dark background colour so characters are still visible.
+		var bg_solid := get_node_or_null("Background") as ColorRect
+		if bg_solid:
+			bg_solid.visible = true
 		return
-	# Show the solid sky color behind the stage art for the uncovered upper area.
-	var bg_solid := get_node_or_null("Background") as ColorRect
-	if bg_solid:
-		bg_solid.color = Color(0.22, 0.35, 0.18, 1.0)  # green sky to match stage1
-		bg_solid.visible = true
-		bg_solid.z_index = -101
-	# Remove atmospheric overlays — stage art provides its own atmosphere.
-	var sky_glow := get_node_or_null("SkyGlow") as ColorRect
-	if sky_glow:
-		sky_glow.visible = false
-	var horizon := get_node_or_null("Horizon") as ColorRect
-	if horizon:
-		horizon.visible = false
-	# Scale to fill viewport width, then align bottom of image to arena floor (y=610).
-	var scale_x := 1280.0 / tex.get_width()
-	var scaled_h := tex.get_height() * scale_x
+
+	# Scale non-uniformly to fill the full 1280x720 viewport.
 	var sprite := Sprite2D.new()
 	sprite.name = "StageBackground"
 	sprite.texture = tex
 	sprite.centered = false
-	sprite.scale = Vector2(scale_x, scale_x)
-	sprite.position = Vector2(0.0, 610.0 - scaled_h)
+	sprite.scale = Vector2(STAGE_BG_W / tex.get_width(), STAGE_BG_H / tex.get_height())
+	sprite.position = Vector2.ZERO
 	sprite.z_index = -100
 	add_child(sprite)
 
+func _pick_stage() -> String:
+	# Map character names to thematic stages.
+	var chars := Global.selected_characters
+	var all_chars: Array = []
+	for c in chars:
+		all_chars.append(c)
+	var naruto_chars := ["Naruto","Sasuke","Sakura","Kakashi","Hinata","Neji","Rock Lee",
+		"Shikamaru","Shikadai","Choji","Kiba","Kurenai","Shino","Shino Adult",
+		"Tenten","Tsunade","Himawari","Orochimaru","Sasori","Zaku","Sasuke TS","Kakuzu"]
+	var onepiece_chars := ["Luffy"]
+	var db_chars := ["Goku"]
+	for c in all_chars:
+		if c in onepiece_chars: return "onepiece.png"
+		if c in db_chars:       return "dragonball.png"
+	for c in all_chars:
+		if c in naruto_chars: return "naruto.png"
+	return "naruto.png"
+
 func _spawn_players() -> void:
-	# NOTE: 2v2 mode is not fully implemented. Global.selected_characters may
-	# contain up to 4 entries, but we currently only spawn chars[0] and chars[1].
-	# When 2v2 is wired up, extend this to spawn chars[2] and chars[3] as
-	# teammates and update player_chars / HUD / GameManager accordingly.
 	var chars := Global.selected_characters
 	var name1 := chars[0] if chars.size() > 0 else "Goku"
 	var name2 := chars[1] if chars.size() > 1 else "Naruto"
@@ -142,9 +167,6 @@ func _create_character(char_name: String, pid: int, prefix: String) -> Character
 		"Zaku":        char_node = Zaku.new()
 		_:             char_node = Goku.new()
 
-	# Custom-drawn anime sprite instead of plain ColorRect.
-	# Sprite draws relative to its own origin; positioning matches old ColorRect
-	# bottom-center at (0,0) of the character node.
 	var body_rect := CharacterSprite.new()
 	body_rect.name = "BodyRect"
 	body_rect.char_name = char_name
@@ -185,34 +207,63 @@ func _create_character(char_name: String, pid: int, prefix: String) -> Character
 	hurtbox.add_child(hurt_col)
 	char_node.add_child(hurtbox)
 
-	# Wire up node references (since char_node uses var not @onready)
 	char_node.body_rect = body_rect
 	char_node.attack_hitbox = attack_hitbox
 	char_node.hurtbox = hurtbox
 
-	# Set char_name before setup() so body color resolves correctly.
-	# (subclass _ready() hasn't fired yet because node isn't in tree)
 	char_node.char_name = char_name
 	char_node.setup(pid, prefix, true)
 	char_node.global_position = Vector2(300.0 if pid == 1 else 980.0, 500.0)
 	return char_node
 
 func _process(delta: float) -> void:
+	_update_camera(delta)
 	if _shake_timer > 0.0:
 		_shake_timer -= delta
-		var offset := Vector2(
+		_camera.offset = Vector2(
 			randf_range(-1.0, 1.0) * _shake_intensity,
 			randf_range(-1.0, 1.0) * _shake_intensity
 		)
-		_camera.offset = offset
 		if _shake_timer <= 0.0:
 			_camera.offset = Vector2.ZERO
 	if _flash_timer > 0.0:
 		_flash_timer -= delta
-		var t := _flash_timer / 0.25
-		_flash_overlay.color.a = t * 0.45
+		_flash_overlay.color.a = (_flash_timer / 0.25) * 0.45
 		if _flash_timer <= 0.0:
 			_flash_overlay.color.a = 0.0
+
+func _update_camera(delta: float) -> void:
+	if player_chars.size() < 2:
+		return
+	var p1 := player_chars[0]
+	var p2 := player_chars[1]
+	if not is_instance_valid(p1) or not is_instance_valid(p2):
+		return
+
+	var mid := (p1.global_position + p2.global_position) * 0.5
+	var dist := abs(p1.global_position.x - p2.global_position.x)
+
+	# Zoom: 1.0 (far/full view) → ZOOM_NEAR (close/zoomed in)
+	var t := clamp((dist - DIST_NEAR) / (DIST_FAR - DIST_NEAR), 0.0, 1.0)
+	var target_zoom := lerp(ZOOM_NEAR, ZOOM_FAR, t)
+	var cur_zoom: float = lerp(_camera.zoom.x, target_zoom, delta * 3.0)
+	_camera.zoom = Vector2(cur_zoom, cur_zoom)
+
+	# Camera bounds: prevent seeing outside the background.
+	var half_w := 640.0 / cur_zoom
+	var half_h := 360.0 / cur_zoom
+
+	# Y tracks slightly above ground; shifts down as we zoom in.
+	var zoom_frac := clamp((cur_zoom - ZOOM_FAR) / (ZOOM_NEAR - ZOOM_FAR), 0.0, 1.0)
+	var target_y := lerp(CAM_Y_BASE, CAM_Y_NEAR, zoom_frac)
+	target_y = clamp(target_y, half_h, STAGE_BG_H - half_h)
+
+	var target_x := clamp(mid.x, half_w, STAGE_BG_W - half_w)
+
+	var cam_pos := _camera.position
+	cam_pos.x = lerp(cam_pos.x, target_x, delta * 5.0)
+	cam_pos.y = lerp(cam_pos.y, target_y, delta * 3.0)
+	_camera.position = cam_pos
 
 func _on_ultimate_activated(user: CharacterBase) -> void:
 	var color := Global.CHARACTER_COLORS.get(user.char_name, Color.WHITE)
