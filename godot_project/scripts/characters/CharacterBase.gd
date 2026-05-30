@@ -56,7 +56,6 @@ func _physics_process(delta: float) -> void:
 		return
 	_apply_gravity(delta)
 	state_timer -= delta
-	add_special(8.0 * delta)
 	_process_state(delta)
 	move_and_slide()
 	_clamp_to_arena()
@@ -112,16 +111,19 @@ func _state_idle(delta: float) -> void:
 	_check_combat_input(input)
 	if state != State.IDLE:
 		return
-	if input & 1:   _set_state(State.WALK)
+	if input & 128: _set_state(State.BLOCK)
+	elif input & 1:   _set_state(State.WALK)
 	elif input & 2: _set_state(State.WALK)
 	elif (input & 4) and is_on_floor(): _jump()
 	elif input & 8: _set_state(State.CROUCH)
-	elif input & 128: _set_state(State.BLOCK)
 
 func _state_walk(delta: float) -> void:
 	var input := _get_input()
 	_check_combat_input(input)
 	if state != State.WALK:
+		return
+	if input & 128:
+		_set_state(State.BLOCK)
 		return
 	if input & 1:
 		velocity.x = -MOVE_SPEED
@@ -144,6 +146,9 @@ func _state_jump(_delta: float) -> void:
 func _state_crouch(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0, MOVE_SPEED * 12 * delta)
 	var input := _get_input()
+	if input & 128:
+		_set_state(State.BLOCK)
+		return
 	if not (input & 8):
 		_set_state(State.IDLE)
 	_check_combat_input(input)
@@ -247,11 +252,8 @@ func take_damage(amount: float, knockback: Vector2 = Vector2.ZERO) -> void:
 	if is_dead:
 		return
 	if state == State.BLOCK:
-		amount *= 0.15
-		health = max(0.0, health - amount)
-		velocity.x += knockback.x * 0.3
-		velocity.y = max(velocity.y + knockback.y * 0.3, -120.0)
 		SoundManager.play_block()
+		return
 	else:
 		health = max(0.0, health - amount)
 		velocity.x += knockback.x

@@ -21,10 +21,6 @@ func _physics_process(delta: float) -> void:
 				body_rect.set("base_color", Global.CHARACTER_COLORS["Goku"])
 	super(delta)
 
-func _state_crouch(delta: float) -> void:
-	super(delta)
-	add_special(3.0 * delta)
-
 func _do_special() -> void:
 	if special < 30.0:
 		return
