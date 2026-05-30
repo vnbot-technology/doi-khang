@@ -5,6 +5,7 @@ var _sub_panel: VBoxContainer
 var _sub_label: Label
 
 func _ready() -> void:
+	MusicManager.play_menu()
 	_build_main()
 	_build_sub()
 	_show_main()

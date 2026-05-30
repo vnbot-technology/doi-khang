@@ -46,6 +46,7 @@ func _ready() -> void:
 	_pause_menu.menu_requested.connect(_on_pause_menu)
 	_pause_menu.quit_requested.connect(get_tree().quit)
 
+	MusicManager.play_battle()
 	_spawn_players()
 
 func _spawn_players() -> void:
